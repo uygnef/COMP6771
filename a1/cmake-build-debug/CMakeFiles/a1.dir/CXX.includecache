@@ -7,14 +7,16 @@
 #IncludeRegexTransform: 
 
 /home/yu/6771/a1/main.cpp
+fstream
+-
 iostream
 -
-fstream
+stack
+-
+cmath
 -
 main.h
 /home/yu/6771/a1/main.h
-stack
--
 
 /home/yu/6771/a1/main.h
 

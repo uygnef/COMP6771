@@ -1,9 +1,13 @@
-#include <iostream>
 #include <fstream>
-#include "main.h"
+#include <iostream>
 #include <stack>
+#include <cmath>
+
+
+#include "main.h"
 
 std::stack<struct number> stack;
+
 
 int main(int argc, char* argv[]) {
     // setup the print out format for the precision required.
@@ -18,10 +22,41 @@ int main(int argc, char* argv[]) {
     std::string s;
     // read the file while we have input.
     while (in >> s) {
-        std::cout<<s<<std::endl;
-        parse_token(s);
+        parse_all(in, s);
     }
     in.close();
+}
+
+
+void parse_all(std::ifstream &in, std::string s){
+    if(s == "repeat"){
+        repeat(in.tellg(), in);
+    }else{
+        parse_token(s);
+    }
+
+}
+
+void repeat(int position, std::ifstream &in) {
+
+    const int times = int(stack.top().value);
+    stack.pop();
+
+    std::string s;
+   // std::cout<<"time is: "<<times<<std::endl;
+    for(auto i=1; i<times; i++){
+       // std::cout<<i<<std::endl;
+        while(in >> s){
+            if(s == "endrepeat"){
+               // std::cout<<position<<" "<<in.tellg()<<" end---\n";
+                in.clear();
+                in.seekg(position, in.beg);
+                break;
+            }
+            parse_all(in, s);
+        }
+    }
+
 }
 
 
@@ -29,14 +64,19 @@ void parse_token(std::string input){
 
     //handle float
 
-    if(!handle_number(input)) {
+    if(handle_number(input)) {
         return;
     }
 
-    if(input == "add" || input == "sub" || input == "mult" || input == "div"){
-        arithmetic(input);
-        return;
+
+    if(input == "pop"){
+        stack.pop();
     }
+
+    if(input == "add" || input == "sub" || input == "mult" || input == "div" || input == "sqrt"){
+        arithmetic(input);
+    }
+
 
     if(input == "reverse"){
         auto depth = int(stack.top().value);
@@ -56,7 +96,7 @@ void parse_token(std::string input){
 
 bool handle_number(std::string input){
 
-    if (isdigit(input[0]) == 0){
+    if (isdigit(input[0]) == 1){
         struct number new_number{};
         //handle double
         if (input.find('.') != std::string::npos){
@@ -77,13 +117,40 @@ int arithmetic(std::string input) {
 
     struct number x = stack.top();
     stack.pop();
+
+    if(input == "sqrt"){
+        struct number result{};
+        result.is_int = x.is_int;
+        result.value = std::sqrt(x.value);
+        stack.push(result);
+        std::cout << "sqrt ";
+
+        if(x.is_int){
+            std::cout << int(x.value);
+        }else{
+            std::cout << x.value;
+        }
+        std::cout << " = ";
+
+        if(result.is_int){
+            std::cout << int(result.value);
+        } else {
+            std::cout << result.value;
+        }
+        std::cout << std::endl;
+        return 0;
+    }
+
     struct number y = stack.top();
     stack.pop();
     struct number result{};
     result.is_int = x.is_int && y.is_int;
 
-
-    std::cout << (x.is_int ? std::to_string(int(x.value)) : std::to_string(x.value)) ;
+    if(x.is_int){
+        std::cout << int(x.value);
+    }else{
+        std::cout << x.value;
+    }
 
     if(input == "add"){
         std::cout << " + ";
@@ -102,8 +169,19 @@ int arithmetic(std::string input) {
         result.value = x.value / y.value;
     }
 
-    std::cout << (y.is_int ? std::to_string(int(y.value)) : std::to_string(y.value)) << " = "
-              << (result.is_int ? std::to_string(int(result.value)) : std::to_string(result.value)) << std::endl;
+    if(y.is_int){
+        std::cout << int(y.value)<< " = ";
+    }else{
+        std::cout << y.value << " = ";
+    }
+
+    if(result.is_int){
+        std::cout << int(result.value);
+    }else {
+        std::cout << result.value;
+    }
+
+    std::cout << std::endl;
 
     stack.push(result);
 
