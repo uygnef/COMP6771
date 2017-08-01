@@ -87,6 +87,9 @@
 		<Unit filename="/home/yu/6771/a1/main.cpp">
 			<Option target="a1"/>
 		</Unit>
+		<Unit filename="/home/yu/6771/a1/main.h">
+			<Option target="a1"/>
+		</Unit>
 		<Unit filename="/home/yu/6771/a1/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>
 		</Unit>
