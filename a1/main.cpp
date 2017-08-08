@@ -44,12 +44,10 @@ void repeat(int position, std::ifstream &in) {
     stack.pop();
 
     std::string s;
-   // std::cout<<"time is: "<<times<<std::endl;
     for(auto i=1; i<times; i++){
        // std::cout<<i<<std::endl;
         while(in >> s){
             if(s == "endrepeat"){
-               // std::cout<<position<<" "<<in.tellg()<<" end---\n";
                 in.clear();
                 in.seekg(position, in.beg);
                 break;
@@ -142,11 +140,7 @@ int arithmetic(std::string input) {
     struct number result{};
     result.is_int = x.is_int && y.is_int;
 
-    if(x.is_int){
-        std::cout << int(x.value);
-    }else{
-        std::cout << x.value;
-    }
+    format_print(x);
 
     if(input == "add"){
         std::cout << " + ";
