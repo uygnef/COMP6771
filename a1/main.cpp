@@ -28,6 +28,7 @@ int main(int argc, char* argv[]) {
 }
 
 
+
 void parse_all(std::ifstream &in, std::string s){
     if(s == "repeat"){
         repeat(in.tellg(), in);
@@ -119,24 +120,19 @@ int arithmetic(std::string input) {
     stack.pop();
 
     if(input == "sqrt"){
+        if(x.value < 0){
+            return 0;
+        }
         struct number result{};
         result.is_int = x.is_int;
         result.value = std::sqrt(x.value);
         stack.push(result);
         std::cout << "sqrt ";
 
-        if(x.is_int){
-            std::cout << int(x.value);
-        }else{
-            std::cout << x.value;
-        }
+        format_print(x);
         std::cout << " = ";
 
-        if(result.is_int){
-            std::cout << int(result.value);
-        } else {
-            std::cout << result.value;
-        }
+        format_print(result);
         std::cout << std::endl;
         return 0;
     }
@@ -169,21 +165,21 @@ int arithmetic(std::string input) {
         result.value = x.value / y.value;
     }
 
-    if(y.is_int){
-        std::cout << int(y.value)<< " = ";
-    }else{
-        std::cout << y.value << " = ";
-    }
-
-    if(result.is_int){
-        std::cout << int(result.value);
-    }else {
-        std::cout << result.value;
-    }
-
+    format_print(y);
+    std::cout << " = ";
+    format_print(result);
     std::cout << std::endl;
 
     stack.push(result);
 
     return 0;
+}
+
+void format_print(const struct number &num){
+    if(num.is_int){
+        std::cout << int(num.value);
+    } else {
+        std::cout << num.value;
+    }
+    return;
 }
