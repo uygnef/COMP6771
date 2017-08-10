@@ -44,12 +44,18 @@ void repeat(int position, std::ifstream &in) {
     stack.pop();
 
     std::string s;
-    for(auto i=1; i<times; i++){
+    for(auto i=0; i<times; i++){
        // std::cout<<i<<std::endl;
+//        std::cout<<"i = "<<i<<std::endl;
+//        if(i == times){
+//            std::cout <<"----------";
+//        }
         while(in >> s){
             if(s == "endrepeat"){
-                in.clear();
-                in.seekg(position, in.beg);
+                if(i != times - 1){
+                    in.clear();
+                    in.seekg(position, in.beg);
+                }
                 break;
             }
             parse_all(in, s);
