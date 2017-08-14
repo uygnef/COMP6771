@@ -27,7 +27,14 @@ int main(int argc, char* argv[]) {
     in.close();
 }
 
-
+std::ostream& operator<<(std::ostream &out,  const struct number& A){
+        if (A.is_int){
+                out << static_cast<int>(A.value);
+        }else{
+                out << A.value;
+        }
+        return out;
+}
 
 void parse_all(std::ifstream &in, std::string s){
     if(s == "repeat"){
@@ -45,11 +52,6 @@ void repeat(int position, std::ifstream &in) {
 
     std::string s;
     for(auto i=0; i<times; i++){
-       // std::cout<<i<<std::endl;
-//        std::cout<<"i = "<<i<<std::endl;
-//        if(i == times){
-//            std::cout <<"----------";
-//        }
         while(in >> s){
             if(s == "endrepeat"){
                 if(i != times - 1){
@@ -68,11 +70,9 @@ void repeat(int position, std::ifstream &in) {
 void parse_token(std::string input){
 
     //handle float
-
     if(handle_number(input)) {
         return;
     }
-
 
     if(input == "pop"){
         stack.pop();
@@ -81,7 +81,6 @@ void parse_token(std::string input){
     if(input == "add" || input == "sub" || input == "mult" || input == "div" || input == "sqrt"){
         arithmetic(input);
     }
-
 
     if(input == "reverse"){
         auto depth = int(stack.top().value);
@@ -131,13 +130,7 @@ int arithmetic(std::string input) {
         result.is_int = x.is_int;
         result.value = std::sqrt(x.value);
         stack.push(result);
-        std::cout << "sqrt ";
-
-        format_print(x);
-        std::cout << " = ";
-
-        format_print(result);
-        std::cout << std::endl;
+        std::cout << "sqrt " << x << " = " << result << std::endl;
         return 0;
     }
 
@@ -145,8 +138,7 @@ int arithmetic(std::string input) {
     stack.pop();
     struct number result{};
     result.is_int = x.is_int && y.is_int;
-
-    format_print(x);
+    std::cout << x;
 
     if(input == "add"){
         std::cout << " + ";
@@ -165,21 +157,9 @@ int arithmetic(std::string input) {
         result.value = x.value / y.value;
     }
 
-    format_print(y);
-    std::cout << " = ";
-    format_print(result);
-    std::cout << std::endl;
+    std::cout << y << " = " << result << std::endl;
 
     stack.push(result);
 
     return 0;
-}
-
-void format_print(const struct number &num){
-    if(num.is_int){
-        std::cout << int(num.value);
-    } else {
-        std::cout << num.value;
-    }
-    return;
 }
