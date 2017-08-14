@@ -86,17 +86,19 @@ void parse_token(const std::string &input){
 
     if(input == "pop"){
         stack.pop();
+        return;
     }
 
     if(input == "add" || input == "sub" || input == "mult" || input == "div" || input == "sqrt"){
         arithmetic(input);
+        return;
     }
 
     if(input == "reverse"){
-        auto depth = static_cast<int>(stack.top().value);
+        const auto depth = static_cast<int>(stack.top().value);
         stack.pop();
         struct number queue[depth];
-        for(auto i = 0U; i < depth; i++){
+        for(auto i = 0; i < depth; i++){
             queue[i] = stack.top();
             stack.pop();
         }
@@ -104,7 +106,11 @@ void parse_token(const std::string &input){
         for(auto j: queue){
             stack.push(j);
         }
+        return;
     }
+    std::cerr << "Unrecognized symbols: " << input << std::endl;
+    exit(-1);
+
 }
 
 bool handle_number(const std::string &input){
