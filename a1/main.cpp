@@ -47,7 +47,7 @@ void parse_all(std::ifstream &in, std::string s){
 
 void repeat(int position, std::ifstream &in) {
 
-    const int times = int(stack.top().value);
+    const int times = static_cast<int>(stack.top().value);
     stack.pop();
 
     std::string s;
@@ -83,11 +83,10 @@ void parse_token(std::string input){
     }
 
     if(input == "reverse"){
-        auto depth = int(stack.top().value);
+        auto depth = static_cast<int>(stack.top().value);
         stack.pop();
         struct number queue[depth];
-        int i;
-        for(i = 0; i < depth; i++){
+        for(auto i = 0U; i < depth; i++){
             queue[i] = stack.top();
             stack.pop();
         }
