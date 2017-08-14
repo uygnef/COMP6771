@@ -1,11 +1,21 @@
+
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <stack>
-#include <cmath>
+
+std::ostream& operator<<(std::ostream &out,  const struct number& A);
+int arithmetic(const std::string &input);
+bool handle_number(const std::string &input);
+void parse_all(std::ifstream &in, const std::string &s);
+void parse_token (const std::string &line);
+void repeat(const int &position, std::ifstream &in);
 
 
-#include "main.h"
-
+struct number{
+    double value;
+    bool is_int;
+};
 std::stack<struct number> stack;
 
 
@@ -27,7 +37,7 @@ int main(int argc, char* argv[]) {
     in.close();
 }
 
-std::ostream& operator<<(std::ostream &out,  const struct number& A){
+std::ostream& operator<<(std::ostream &out, const struct number& A){
         if (A.is_int){
                 out << static_cast<int>(A.value);
         }else{
@@ -36,7 +46,7 @@ std::ostream& operator<<(std::ostream &out,  const struct number& A){
         return out;
 }
 
-void parse_all(std::ifstream &in, std::string s){
+void parse_all(std::ifstream &in, const std::string &s){
     if(s == "repeat"){
         repeat(in.tellg(), in);
     }else{
@@ -45,7 +55,7 @@ void parse_all(std::ifstream &in, std::string s){
 
 }
 
-void repeat(int position, std::ifstream &in) {
+void repeat(const int &position, std::ifstream &in) {
 
     const int times = static_cast<int>(stack.top().value);
     stack.pop();
@@ -67,7 +77,7 @@ void repeat(int position, std::ifstream &in) {
 }
 
 
-void parse_token(std::string input){
+void parse_token(const std::string &input){
 
     //handle float
     if(handle_number(input)) {
@@ -97,7 +107,7 @@ void parse_token(std::string input){
     }
 }
 
-bool handle_number(std::string input){
+bool handle_number(const std::string &input){
 
     if (isdigit(input[0]) == 1){
         struct number new_number{};
@@ -116,7 +126,7 @@ bool handle_number(std::string input){
     return false;
 }
 
-int arithmetic(std::string input) {
+int arithmetic(const std::string &input) {
 
     struct number x = stack.top();
     stack.pop();
