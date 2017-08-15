@@ -1,0 +1,13 @@
+1
+2 mult
+
+3 repeat
+sqrt
+    4 repeat
+        2 add
+            2 repeat
+            1 add
+            endrepeat
+    endrepeat
+    3 div
+endrepeat
