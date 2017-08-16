@@ -139,7 +139,8 @@ int arithmetic(const std::string &input) {
 
     if(input == "sqrt"){
         if(x.value < 0){
-            return 0;
+            std::cerr << "ValueError: sqrt domin error\n";
+            exit(-1);
         }
         struct number result{};
         result.is_int = x.is_int;
@@ -171,9 +172,7 @@ int arithmetic(const std::string &input) {
         std::cout << " / ";
         result.value = x.value / y.value;
     }
-
     std::cout << y << " = " << result << std::endl;
-
     stack.push(result);
 
     return 0;
