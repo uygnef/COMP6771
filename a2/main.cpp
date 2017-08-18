@@ -14,5 +14,10 @@ int main() {
     }
     c[1] = 2;
     std::cout << "lala"<< c[1] <<std::endl;
+    c *= 3;
+    std::cout << c[1] <<std::endl;
+
+    c /= 2;
+    std::cout << c[1] <<std::endl;
     return 0;
 }

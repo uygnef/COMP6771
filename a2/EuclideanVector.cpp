@@ -62,5 +62,42 @@ double EuclideanVector::operator[](unsigned i) const{
     return this->magnitude.at(i);
 }
 
+EuclideanVector& EuclideanVector::operator+= (EuclideanVector x){
+    if(x.dimension != this->dimension){
+        std::cerr << "+ operation need be same dimension: can not add"
+                  << x.dimension << " with " << this->dimension <<std::endl;
+        exit(-1);
+    }
+
+    unsigned i = 0;
+    for(i; i < x.dimension; ++i ){
+        this->magnitude[i] += x.magnitude[i];
+    }
+    return *this;
+}
+
+EuclideanVector& EuclideanVector::operator-= (EuclideanVector x){
+    if(x.dimension != this->dimension){
+        std::cerr << "- operation need be same dimension: can not add"
+                  << x.dimension << " with " << this->dimension <<std::endl;
+        exit(-1);
+    }
+
+    unsigned i = 0;
+    for(i; i < x.dimension; ++i ){
+        this->magnitude[i] -= x.magnitude[i];
+    }
+    return *this;
+}
+
+
+
+//EuclideanVector& EuclideanVector::operator= (const EuclideanVector x) {
+//    this->magnitude = x.magnitude;
+//    this->dimension = x.dimension;
+//    return *this;
+//}
+
+
 
 

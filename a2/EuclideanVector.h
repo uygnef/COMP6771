@@ -14,7 +14,7 @@ public:
     EuclideanVector():dimension{1U},magnitude{0}{};
     EuclideanVector(int i):dimension{static_cast<unsigned>(i)} ,magnitude{0}{};
 
-    EuclideanVector(int d, double m):dimension{d}, magnitude{m}{};
+    EuclideanVector(int d, double m):dimension{static_cast<unsigned int>(d)}, magnitude{m}{};
 
     template <typename IT> EuclideanVector(IT begin, IT end){
         magnitude = std::vector<double>(begin, end);
@@ -33,6 +33,32 @@ public:
 
     double& operator[] (unsigned x);
     double operator[](unsigned i) const;
+    EuclideanVector& operator+= (EuclideanVector x);
+    EuclideanVector& operator-= (EuclideanVector x);
+
+    template<typename NUM> EuclideanVector& operator*= (NUM x){
+        for(auto &i: this->magnitude){
+            i *= x;
+        }
+        return *this;
+    }
+
+    template<typename NUM> EuclideanVector& operator/= (NUM x){
+        for(auto &i: this->magnitude){
+            i /= x;
+        }
+        return *this;
+    }
+
+
+//    template<typename> EuclideanVector& operator= (const EuclideanVector& x){
+//
+//        return *this;
+//    }
+
+
+
+
     std::vector<double>magnitude;
 
 private:
