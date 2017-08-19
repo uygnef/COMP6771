@@ -46,10 +46,12 @@ namespace evec {
 
         ~EuclideanVector();
 
+        EuclideanVector& operator=(const EuclideanVector &ev);
+        EuclideanVector& operator=(EuclideanVector &&ev);
+
         const unsigned getNumDimensions();
 
-        template<typename T>
-        const double get(const T &i);
+        double get(const int& i) const;
 
         double getEuclideanNorm();
 
@@ -59,20 +61,19 @@ namespace evec {
 
         double operator[](unsigned i) const;
 
-        EuclideanVector &operator+=(EuclideanVector x);
+        EuclideanVector &operator+=(const EuclideanVector& x);
 
         EuclideanVector &operator-=(EuclideanVector x);
 
-        template<typename T>
-        EuclideanVector &operator*=(T x);
+        EuclideanVector &operator*=(const int& x);
 
         template<typename T>
         EuclideanVector &operator/=(T x);
 
 
-        explicit operator std::vector<double>() const;
+        operator std::vector<double>() const;
 
-        explicit operator std::list<double>() const;
+        operator std::list<double>() const;
 
 
         friend std::ostream &operator<<(std::ostream &os, const EuclideanVector &v);
@@ -81,23 +82,20 @@ namespace evec {
 
         friend bool operator!=(const EuclideanVector &lhs, const EuclideanVector &rhs);
 
-        friend EuclideanVector &operator+(const EuclideanVector &lhs, const EuclideanVector &rhs);
+        friend EuclideanVector operator+(const EuclideanVector &lhs, const EuclideanVector &rhs);
 
-        friend EuclideanVector &operator-(const EuclideanVector &lhs, const EuclideanVector &rhs);
+        friend EuclideanVector operator-(const EuclideanVector &lhs, const EuclideanVector &rhs);
 
-        template<typename T>
-        friend EuclideanVector &operator/(const EuclideanVector &lhs, T &scale);
+        friend EuclideanVector operator/(const EuclideanVector &lhs, int scale);
 
-        template<typename T>
-        friend EuclideanVector &operator*(const EuclideanVector &lhs, T &scale);
 
-        template<typename T>
-        friend EuclideanVector &operator*(T &scale, const EuclideanVector &lhs);
+        friend EuclideanVector operator*(const EuclideanVector &lhs, int &scale);
 
-        friend double &operator*(const EuclideanVector &scale, const EuclideanVector &lhs);
+        friend EuclideanVector operator*(int &scale, const EuclideanVector &lhs);
 
-//        friend EuclideanVector &operator=(std::vector<double> &trans, const EuclideanVector &rhs);
+        friend double operator*(const EuclideanVector &scale, const EuclideanVector &lhs);
 
+       // friend EuclideanVector &operator=(const EuclideanVector &rhs);
 
         double *magnitude;
         unsigned dimension;

@@ -41,7 +41,6 @@ int main() {
 
     evec::EuclideanVector h = e - g;
     std::cout << h << std::endl;
-
     // test scalar multiplication
     h *= 2;
     std::cout << h << std::endl;
@@ -67,7 +66,7 @@ int main() {
         std::cout << d << std::endl;
     }
 
-    // list initialisation
+//    // list initialisation
 //    evec::EuclideanVector k {1, 2, 3};
 //    std::cout << k << std::endl;
 }
