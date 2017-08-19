@@ -3,21 +3,20 @@
 #include <list>
 int main() {
     std::cout << "Hello, World!" << std::endl;
-    std::list<double> v2 {4,5,6,7};
-    EuclideanVector a(v2.begin(), v2.end());
-    EuclideanVector b = std::move(a);
-    std::cout<<*(++b.magnitude.begin())<<"  " <<b.getEuclideanNorm()<<std::endl;
+    EuclideanVector a{3,4.0};
+    std::cout<<a.magnitude[2]<<std::endl;
 
-    EuclideanVector c = b.createUnitVector();
-    for(auto i:c.magnitude){
-        std::cout << i;
-    }
-    c[1] = 2;
-    std::cout << "lala"<< c[1] <<std::endl;
-    c *= 3;
-    std::cout << c[1] <<std::endl;
+    std::list<double> b{11,12,13,14};
+    EuclideanVector c{b.begin(), b.end()};
+    std::cout<<c.magnitude[2]<<std::endl;
 
-    c /= 2;
-    std::cout << c[1] <<std::endl;
+    EuclideanVector d{c};
+    std::cout<<d.magnitude[1]<<std::endl;
+
+    EuclideanVector e = std::move(c);
+    std::cout<<c.magnitude[2]<<std::endl;
+    std::cout<<e.magnitude[2]<<std::endl;
+
+
     return 0;
 }
