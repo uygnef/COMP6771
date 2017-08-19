@@ -7,65 +7,59 @@
 
 
 #include <cmath>
-#include <vector>
+#include <memory>
+#include <cstring>
+#include <cassert>
 
 class EuclideanVector {
 public:
-    EuclideanVector():dimension{1U},magnitude{0}{};
-    EuclideanVector(int i):dimension{static_cast<unsigned>(i)} ,magnitude{0}{};
-
-    EuclideanVector(int d, double m):dimension{static_cast<unsigned int>(d)}, magnitude{m}{};
+    template <typename T, typename D>
+    explicit EuclideanVector(T length=0U, D mag = 0): dimension{static_cast<unsigned>(length)},
+                                                      magnitude{new double[dimension]} {};
 
     template <typename IT> EuclideanVector(IT begin, IT end){
-        magnitude = std::vector<double>(begin, end);
-        dimension = magnitude.size();
+        dimension = 0;
+        for (auto i = begin; i != end; ++i) {
+            dimension += 1;
+        }
+
+        magnitude = new double[dimension];
+        unsigned j = 0U;
+        for (auto i = begin; i != end; ++i) {
+            magnitude[j] = *i;
+            j += 1;
+        }
     }
 
     EuclideanVector( const EuclideanVector& a);
-    EuclideanVector(EuclideanVector&& a);
+    EuclideanVector( EuclideanVector&& a);
 
-    unsigned int getNumDimensions();
-
-    double get(unsigned int);
-    double_t getEuclideanNorm();
-
-    EuclideanVector createUnitVector();
-
-    double& operator[] (unsigned x);
-    double operator[](unsigned i) const;
-    EuclideanVector& operator+= (EuclideanVector x);
-    EuclideanVector& operator-= (EuclideanVector x);
-
-    template<typename NUM> EuclideanVector& operator*= (NUM x){
-        for(auto &i: this->magnitude){
-            i *= x;
-        }
-        return *this;
-    }
-
-    template<typename NUM> EuclideanVector& operator/= (NUM x){
-        for(auto &i: this->magnitude){
-            i /= x;
-        }
-        return *this;
-    }
-
-
-//    template<typename> EuclideanVector& operator= (const EuclideanVector& x){
+    ~EuclideanVector();
+//private:
+//    class Array{
+//    public:
+//        friend class EuclideanVector;
 //
-//        return *this;
-//    }
-
-
-
-
-    std::vector<double>magnitude;
-
-private:
-    unsigned int dimension;
-
-
+//        template<typename T, typename D>
+//        Array(T s=1U, D v = 0): size{static_cast<unsigned>(s)},
+//                                value{new double[static_cast<int>(s)]} {
+//            if (v != 0){
+//                auto i = 0U;
+//                for(i; i<size; ++i){
+//                    value[i] = v;
+//                }
+//            }
+//        };
+//
+//        double *value;
+//        int size;
+//    };
+    double *magnitude;
+    unsigned dimension;
 };
 
-
+/*
+ * 
+ * 
+ */
 #endif //A2_EUCLIDEANVECTOR_H
