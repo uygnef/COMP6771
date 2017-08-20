@@ -1,7 +1,6 @@
 //
 // Created by yu on 16/08/17.
 //
-#include <iostream>
 #include "EuclideanVector.h"
 //
 //double &EuclideanVector::Node::operator[](const double &i) {
@@ -63,11 +62,11 @@ namespace evec {
     }
 
     EuclideanVector::~EuclideanVector() {
-        this->dimension = 0;
+       // this->dimension = 0;
         delete[] this->magnitude;
     }
 
-    const unsigned EuclideanVector::getNumDimensions() {
+    unsigned EuclideanVector::getNumDimensions() const{
         return this->dimension;
     }
 
@@ -75,7 +74,7 @@ namespace evec {
         return this->magnitude[static_cast<unsigned>(i)];
     }
 
-    double EuclideanVector::getEuclideanNorm() {
+    double EuclideanVector::getEuclideanNorm() const{
         double sum_power{0};;
         for (auto i = 0U; i < this->dimension; ++i) {
             sum_power += pow(this->magnitude[i], 2);
@@ -83,7 +82,7 @@ namespace evec {
         return sqrt(sum_power);
     }
 
-    EuclideanVector EuclideanVector::createUnitVector() {
+    EuclideanVector EuclideanVector::createUnitVector() const {
         double norm_dist = this->getEuclideanNorm();
         EuclideanVector ret{*this};
         for (auto i = 0U; i < this->dimension; ++i) {
@@ -125,11 +124,18 @@ namespace evec {
         return *this;
     }
 
-    template<typename T>
-    EuclideanVector &EuclideanVector::operator/=(T x) {
+    EuclideanVector &EuclideanVector::operator/=(const double& x){
         assert(x != 0);
         for (auto i = 0U; i < this->dimension; ++i) {
-            this->magnitude[i] /= x;
+            magnitude[i] /= x;
+        }
+        return *this;
+    }
+
+    EuclideanVector &EuclideanVector::operator/=(const int &x) {
+        assert(x != 0);
+        for (auto i = 0U; i < this->dimension; ++i) {
+            magnitude[i] /= x;
         }
         return *this;
     }
@@ -152,7 +158,7 @@ namespace evec {
 
     std::ostream &operator<<(std::ostream &os, const EuclideanVector &v) {
         os << "[";
-        for (auto i = 0; i < v.dimension; ++i) {
+        for (auto i = 0U; i < v.dimension; ++i) {
             os << v.magnitude[i];
             if (i != v.dimension - 1) {
                 os << " ";
@@ -188,7 +194,7 @@ namespace evec {
 
     EuclideanVector operator+(const EuclideanVector &lhs, const EuclideanVector &rhs) {
         assert(lhs.dimension == rhs.dimension);
-        EuclideanVector ret{rhs.dimension, 0.0};
+        EuclideanVector ret(rhs.dimension);
         for (auto i = 0U; i < lhs.dimension; ++i) {
             ret.magnitude[i] = rhs.magnitude[i] + lhs.magnitude[i];
         }
@@ -197,7 +203,7 @@ namespace evec {
 
     EuclideanVector operator-(const EuclideanVector &lhs, const EuclideanVector &rhs) {
         assert(lhs.dimension == rhs.dimension);
-        EuclideanVector ret{rhs.dimension, 0.0};
+        EuclideanVector ret(rhs.dimension);
         for (auto i = 0U; i < lhs.dimension; ++i) {
             ret.magnitude[i] = lhs.magnitude[i] - rhs.magnitude[i];
         }
@@ -206,7 +212,7 @@ namespace evec {
 
 //template<typename T>
     EuclideanVector operator/(const EuclideanVector &lhs, int scale) {
-        EuclideanVector ret{lhs.dimension, 0.0};
+        EuclideanVector ret(lhs.dimension);
         for (auto i = 0U; i < lhs.dimension; ++i) {
             ret.magnitude[i] = lhs.magnitude[i] / scale;
         }
@@ -215,7 +221,7 @@ namespace evec {
 
 
     EuclideanVector operator*(const EuclideanVector &lhs, int &scale) {
-        EuclideanVector ret{lhs.dimension, 0};
+        EuclideanVector ret(lhs.dimension);
         for (auto i = 0U; i < lhs.dimension; ++i) {
             ret.magnitude[i] *= scale;
         }
@@ -224,7 +230,7 @@ namespace evec {
 
 
     EuclideanVector operator*(int &scale, const EuclideanVector &lhs) {
-        EuclideanVector ret{lhs.dimension, 0};
+        EuclideanVector ret(lhs.dimension);
         for (auto i = 0U; i < lhs.dimension; ++i) {
             ret.magnitude[i] *= scale;
         }
@@ -244,29 +250,26 @@ namespace evec {
 
     EuclideanVector& EuclideanVector::operator=(const EuclideanVector &rhs) {
         if(*this != rhs){
-            EuclideanVector ret{rhs.dimension};
             for(auto i=0U; i < rhs.dimension; ++i){
-                ret.magnitude[i] = rhs.magnitude[i];
+                this->magnitude[i] = rhs.magnitude[i];
             }
-            return ret;
         }
         return *this;
     }
 
     EuclideanVector &EuclideanVector::operator=(EuclideanVector &&ev) {
-        if(*this == ev){
-            return *this;
+        if(*this != ev) {
+            for (auto i = 0U; i < ev.dimension; ++i) {
+                this->magnitude[i] = ev.magnitude[i];
+            }
+            delete[] ev.magnitude;
+            ev.dimension = 0U;
         }
-        EuclideanVector ret{ev.dimension};
-        for(auto i=0U; i<ev.dimension; ++i){
-            ret.magnitude[i] = ev.magnitude[i];
-        }
-        delete[] ev.magnitude;
-        ev.dimension = 0;
-        return ret;
+        return *this;
     }
-}
 
+
+}
 
 
 

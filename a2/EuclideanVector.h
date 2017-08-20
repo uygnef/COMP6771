@@ -4,7 +4,7 @@
 
 #ifndef A2_EUCLIDEANVECTOR_H
 #define A2_EUCLIDEANVECTOR_H
-
+#pragma once
 
 #include <cmath>
 #include <memory>
@@ -12,22 +12,35 @@
 #include <cassert>
 #include <vector>
 #include <list>
+#include <stdarg.h>
+#include <iostream>
 
 namespace evec {
     class EuclideanVector {
     public:
+        EuclideanVector(): dimension{1}{
+            magnitude = new double[1];
+            magnitude[0] = 0.0;
+        }
 
+        template <typename T>
+        EuclideanVector(T length, typename std::enable_if<std::is_arithmetic<T>::value>::type* = 0): dimension{static_cast<unsigned>(length)} {
+            magnitude = new double[dimension];
+            for(auto i=0U; i<dimension; ++i){
+                magnitude[i] = 0.0;
+            }
+        }
 
-        EuclideanVector(unsigned length = 1U, double mag = 0.0) : dimension{length},
+        EuclideanVector(unsigned length, double mag) : dimension{length},
                                                                   magnitude{new double[length]} {
-            for (auto i = 0; i < length; ++i) {
+            for (auto i = 0U; i < length; ++i) {
                 magnitude[i] = mag;
             }
         };
 
         template<typename IT>
-        EuclideanVector(IT begin, IT end) {
-            dimension = 0;
+        EuclideanVector(IT begin, IT end, typename std::enable_if<!std::is_arithmetic<IT>::value>::type* = 0) {
+            dimension = 0U;
             for (auto i = begin; i != end; ++i) {
                 dimension += 1;
             }
@@ -35,8 +48,18 @@ namespace evec {
             magnitude = new double[dimension];
             unsigned j = 0U;
             for (auto i = begin; i != end; ++i) {
-                magnitude[j] = *i;
+                magnitude[j] = static_cast<double>(*i);
                 j += 1;
+            }
+        }
+
+        EuclideanVector(std::initializer_list<double> values){
+            dimension = static_cast<unsigned >(values.size());
+            magnitude = new double[dimension];
+            unsigned i = 0U;
+            for(auto& value: values){
+                magnitude[i] = value;
+                ++i;
             }
         }
 
@@ -49,13 +72,13 @@ namespace evec {
         EuclideanVector& operator=(const EuclideanVector &ev);
         EuclideanVector& operator=(EuclideanVector &&ev);
 
-        const unsigned getNumDimensions();
+        unsigned getNumDimensions() const;
 
         double get(const int& i) const;
 
-        double getEuclideanNorm();
+        double getEuclideanNorm() const;
 
-        EuclideanVector createUnitVector();
+        EuclideanVector createUnitVector() const;
 
         double &operator[](unsigned i);
 
@@ -67,8 +90,9 @@ namespace evec {
 
         EuclideanVector &operator*=(const int& x);
 
-        template<typename T>
-        EuclideanVector &operator/=(T x);
+        EuclideanVector& operator/=(const double& x);
+
+        EuclideanVector& operator/=(const int& x);
 
 
         operator std::vector<double>() const;
@@ -95,10 +119,10 @@ namespace evec {
 
         friend double operator*(const EuclideanVector &scale, const EuclideanVector &lhs);
 
-       // friend EuclideanVector &operator=(const EuclideanVector &rhs);
-
-        double *magnitude;
+    private:
         unsigned dimension;
+        double *magnitude;
+
     };
 }
 /*

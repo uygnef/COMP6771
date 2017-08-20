@@ -35,6 +35,7 @@ int main() {
     std::cout << g << std::endl;
     std::cout << f << std::endl;
 
+    //evec::EuclideanVector ds{1,2,3,4};
     // try operator overloading
     e += d;
     std::cout << e << std::endl;
@@ -43,9 +44,10 @@ int main() {
     std::cout << h << std::endl;
     // test scalar multiplication
     h *= 2;
-    std::cout << h << std::endl;
+    std::cout << h << std::endl<<"a";
 
     evec::EuclideanVector j = b / 2;
+    j /= 2;
     std::cout << j << std::endl;
 
     std::cout << "dot product = " << j * b << std::endl;
