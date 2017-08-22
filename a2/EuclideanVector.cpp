@@ -2,68 +2,36 @@
 // Created by yu on 16/08/17.
 //
 #include "EuclideanVector.h"
-//
-//double &EuclideanVector::Node::operator[](const double &i) {
-//    unsigned count{0U};
-//    Node *temp = this;
-//
-//    for(count; count < i; ++count){
-//        if(temp == nullptr){
-//            std::cerr << "[] out of range.\n";
-//            exit(-1);
-//        }
-//        temp = temp->next;
-//    }
-//    return temp->value;
-//}
-//
-//double EuclideanVector::Node::operator[](const double &i) const {
-//
-//    unsigned count{0U};
-//    Node *temp = this;
-//
-//    for(count; count < i; ++count){
-//        if(temp == nullptr){
-//            std::cerr << "[] out of range.\n";
-//            exit(-1);
-//        }
-//        temp = temp->next;
-//    }
-//    return temp->value;
-//}
-
-
-
-//EuclideanVector& EuclideanVector::operator= (const EuclideanVector x) {
-//    this->magnitude = x.magnitude;
-//    this->dimension = x.dimension;
-//    return *this;
-//}
 
 namespace evec {
 
 
     EuclideanVector::EuclideanVector(const EuclideanVector &a){
         dimension = a.dimension;
-        magnitude = new double[dimension];
+        magnitude = new double[dimension]; std::cout <<"1 allocate" << magnitude<<"\n";
         for (auto i = 0U; i < dimension; ++i) {
             magnitude[i] = a.magnitude[i];
         }
     }
 
     EuclideanVector::EuclideanVector(EuclideanVector &&a) {
-        dimension = a.dimension;
-        magnitude = new double[dimension];
-        for (auto i = 0U; i < dimension; ++i) {
-            magnitude[i] = a.magnitude[i];
-        }
-        a.dimension = 0;
-        delete[] a.magnitude;
+            dimension = a.dimension;
+            magnitude = new double[dimension];std::cout <<"2 allocate" << magnitude<<"\n";
+            for (auto i = 0U; i < dimension; ++i) {
+                magnitude[i] = a.magnitude[i];
+            }
+            a.dimension = 0;
+            delete[] a.magnitude; std::cout << "9 free "<<a.magnitude<<"\n";
     }
 
     EuclideanVector::~EuclideanVector() {
        // this->dimension = 0;
-        delete[] this->magnitude;
+        std::cout << * magnitude;
+            delete[] this->magnitude; std::cout <<"        1 free" << magnitude<<"\n";
+            this->magnitude = nullptr;
+     //   std::cout << * magnitude << (magnitude == nullptr);
+
+
     }
 
     unsigned EuclideanVector::getNumDimensions() const{
@@ -132,13 +100,6 @@ namespace evec {
         return *this;
     }
 
-    EuclideanVector &EuclideanVector::operator/=(const int &x) {
-        assert(x != 0);
-        for (auto i = 0U; i < this->dimension; ++i) {
-            magnitude[i] /= x;
-        }
-        return *this;
-    }
 
     EuclideanVector::operator std::vector<double>() const {
         std::vector<double> ret;
@@ -249,7 +210,7 @@ namespace evec {
     }
 
     EuclideanVector& EuclideanVector::operator=(const EuclideanVector &rhs) {
-        if(*this != rhs){
+        if(this != &rhs){
             for(auto i=0U; i < rhs.dimension; ++i){
                 this->magnitude[i] = rhs.magnitude[i];
             }
@@ -258,12 +219,15 @@ namespace evec {
     }
 
     EuclideanVector &EuclideanVector::operator=(EuclideanVector &&ev) {
-        if(*this != ev) {
-            for (auto i = 0U; i < ev.dimension; ++i) {
-                this->magnitude[i] = ev.magnitude[i];
-            }
-            delete[] ev.magnitude;
-            ev.dimension = 0U;
+        if(this != &ev) {
+            delete[] magnitude;
+            dimension = ev.dimension;
+            magnitude = ev.magnitude;
+//            for (auto i = 0U; i < ev.dimension; ++i) {
+//                this->magnitude[i] = ev.magnitude[i];
+//            }
+          //  delete[] ev.magnitude; std::cout <<"      2     free" << ev.magnitude<<"\n";
+          //  ev.dimension = 0U;
         }
         return *this;
     }

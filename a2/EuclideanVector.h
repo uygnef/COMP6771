@@ -19,20 +19,21 @@ namespace evec {
     class EuclideanVector {
     public:
         EuclideanVector(): dimension{1}{
-            magnitude = new double[1];
+            magnitude = new double[1]; std::cout <<"3 allocate" << magnitude<<"\n";
             magnitude[0] = 0.0;
         }
 
-        template <typename T>
-        EuclideanVector(T length, typename std::enable_if<std::is_arithmetic<T>::value>::type* = 0): dimension{static_cast<unsigned>(length)} {
-            magnitude = new double[dimension];
+        EuclideanVector(double length): dimension{static_cast<unsigned>(length)},
+                                        magnitude{new double[dimension]}{
+            ; std::cout <<"4 allocate" << magnitude<<"\n";
             for(auto i=0U; i<dimension; ++i){
                 magnitude[i] = 0.0;
             }
         }
 
         EuclideanVector(unsigned length, double mag) : dimension{length},
-                                                                  magnitude{new double[length]} {
+                                                       magnitude{new double[length]} {
+            std::cout <<"5 allocate" << magnitude<<"\n";
             for (auto i = 0U; i < length; ++i) {
                 magnitude[i] = mag;
             }
@@ -45,7 +46,7 @@ namespace evec {
                 dimension += 1;
             }
 
-            magnitude = new double[dimension];
+            magnitude = new double[dimension];std::cout <<"6 allocate" << magnitude<<"\n";
             unsigned j = 0U;
             for (auto i = begin; i != end; ++i) {
                 magnitude[j] = static_cast<double>(*i);
@@ -55,7 +56,8 @@ namespace evec {
 
         EuclideanVector(std::initializer_list<double> values){
             dimension = static_cast<unsigned >(values.size());
-            magnitude = new double[dimension];
+            magnitude = new double[dimension];            std::cout <<"7 allocate" << magnitude<<"\n";
+
             unsigned i = 0U;
             for(auto& value: values){
                 magnitude[i] = value;
@@ -92,7 +94,6 @@ namespace evec {
 
         EuclideanVector& operator/=(const double& x);
 
-        EuclideanVector& operator/=(const int& x);
 
 
         operator std::vector<double>() const;
@@ -119,7 +120,7 @@ namespace evec {
 
         friend double operator*(const EuclideanVector &scale, const EuclideanVector &lhs);
 
-    private:
+  //  private:
         unsigned dimension;
         double *magnitude;
 
