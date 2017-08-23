@@ -102,7 +102,7 @@ namespace evec {
 
         EuclideanVector &operator-=(EuclideanVector x);
 
-        EuclideanVector &operator*=(const int& x);
+        EuclideanVector &operator*=(const double& x);
 
         EuclideanVector& operator/=(const double& x);
 
@@ -123,12 +123,12 @@ namespace evec {
 
         friend EuclideanVector operator-(const EuclideanVector &lhs, const EuclideanVector &rhs);
 
-        friend EuclideanVector operator/(const EuclideanVector &lhs, int scale);
+        friend EuclideanVector operator/(const EuclideanVector &lhs, double scale);
 
 
-        friend EuclideanVector operator*(const EuclideanVector &lhs, int &scale);
+        friend EuclideanVector operator*(const EuclideanVector& rhs, double scale);
 
-        friend EuclideanVector operator*(int &scale, const EuclideanVector &lhs);
+        friend EuclideanVector operator*(double scale, const EuclideanVector &lhs);
 
         friend double operator*(const EuclideanVector &scale, const EuclideanVector &lhs);
 

@@ -4,77 +4,36 @@
 
 #include "EuclideanVector.h"
 
+constexpr double eps = 1e-7;
+
+inline bool almost_eq(double a, double b) {
+    return std::abs(a - b) < eps;
+}
+
+inline void assertEquals(const evec::EuclideanVector& myvec, std::vector<double> values) {
+    int vec_size = myvec.getNumDimensions();
+    int values_size = values.size();
+    if(vec_size != values_size) {
+        std::cout << "Vector length " << vec_size << "\n";
+        std::cout << "Values length " << values_size << "\n";
+    }
+    assert(myvec.getNumDimensions() == values.size());
+    for (auto i = 0U; i < values.size(); i++) {
+        if(!almost_eq(myvec.get(i), values.at(i))){
+            std::cout << "not equal" << myvec.get(i) << values.at(i) << std::endl;
+        }
+        assert(almost_eq(myvec.get(i), values.at(i)));
+    }
+}
+
+
 int main() {
 
-    evec::EuclideanVector a(2);
 
-    std::list<double> l {1,2,3};
-    evec::EuclideanVector b{l.begin(),l.end()};
-
-    std::vector<double> v2 {4,5,6,7};
-    evec::EuclideanVector c{v2.begin(),v2.end()};
-
-    std::vector<double> a1 {5,4,3,2,1};
-    evec::EuclideanVector d{a1.begin(),a1.end()};
-
-    std::list<double> a2 {9,0,8,6,7};
-    evec::EuclideanVector e{a2.begin(),a2.end()};
-
-    // use the copy constructor
-    evec::EuclideanVector f{e};
-
-    //std::cout << a.getNumDimensions() << ": " << a << std::endl;
-    //std::cout << "D1:" << b.get(1) << " " << b << std::endl;
-    //std::cout << c << " Euclidean Norm = " << c.getEuclideanNorm() << std::endl;
-    //std::cout << d << " Unit Vector: " << d.createUnitVector() << " L = " << d.createUnitVector().getEuclideanNorm() << std::endl;
-    //std::cout << e << std::endl;
-    //std::cout << f << std::endl;
-
-    // test the move constructor
-    evec::EuclideanVector g = std::move(f);
-    //std::cout << g << std::endl;
-    //std::cout << f << std::endl;
-
-    //evec::EuclideanVector ds{1,2,3,4};
-    // try operator overloading
-    e += d;
-    //std::cout << e << std::endl;
-
-    evec::EuclideanVector h = e - g;
-    //std::cout << h << std::endl;
-    // test scalar multiplication
-    h *= 2;
-    //std::cout << h << std::endl<<"a";
-
-    evec::EuclideanVector j = b / 2;
-    j /= 2;
-    //std::cout << j << std::endl;
-
-    //std::cout << "dot product = " << j * b << std::endl;
-
-    if (g == (e - d)) std::cout << "true" << std::endl;
-    if (j != b ) std::cout << "false" << std::endl;
-
-    j[0] = 1;
-    //std::cout << j << std::endl;
-
-    // type cast from EuclideanVector to a std::vector
-    std::vector<double> vj = j;
-
-    // type cast from EuclideanVector to a std::vector
-    std::list<double> lj = j;
-
-    for (auto d : lj) {
-        //std::cout << d << std::endl;
+    {
+        // Scalar multiply an rvalue.
+   //     evec::EuclideanVector a = evec::EuclideanVector(2, 2.0) * 4.0;
+        assertEquals(evec::EuclideanVector(2, 2.0) * 2.0, {4.0, 4.0});
     }
 
-
-    evec::EuclideanVector sa {1,2,3};
-    evec::EuclideanVector ps = sa;
-    //std::cout << sa.magnitude << ps.magnitude;
-
-
-//    // list initialisation
-//    evec::EuclideanVector k {1, 2, 3};
-//    //std::cout << k << std::endl;
 }
