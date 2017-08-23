@@ -8,7 +8,10 @@ namespace evec {
 
     EuclideanVector::EuclideanVector(const EuclideanVector &a){
         dimension = a.dimension;
-        magnitude = new double[dimension]; std::cout <<"1 allocate" << magnitude<<"\n";
+        magnitude = new double[dimension];
+#ifdef DEBUG
+        std::cout <<"1 allocate" << magnitude<<"\n";
+#endif
         for (auto i = 0U; i < dimension; ++i) {
             magnitude[i] = a.magnitude[i];
         }
@@ -16,22 +19,22 @@ namespace evec {
 
     EuclideanVector::EuclideanVector(EuclideanVector &&a) {
             dimension = a.dimension;
-            magnitude = new double[dimension];std::cout <<"2 allocate" << magnitude<<"\n";
-            for (auto i = 0U; i < dimension; ++i) {
-                magnitude[i] = a.magnitude[i];
-            }
+            magnitude = a.magnitude;
+
             a.dimension = 0;
-            delete[] a.magnitude; std::cout << "9 free "<<a.magnitude<<"\n";
+            a.magnitude = nullptr;
+          //  delete[] a.magnitude; std::cout << "9 free "<<a.magnitude<<"\n";
     }
 
     EuclideanVector::~EuclideanVector() {
        // this->dimension = 0;
-        std::cout << * magnitude;
-            delete[] this->magnitude; std::cout <<"        1 free" << magnitude<<"\n";
-            this->magnitude = nullptr;
-     //   std::cout << * magnitude << (magnitude == nullptr);
-
-
+        if(magnitude != nullptr){
+            delete[] this->magnitude;
+#ifdef DEBUG
+            std::cout << * magnitude;
+            std::cout <<"        1 free" << magnitude<<"\n";
+#endif
+        }
     }
 
     unsigned EuclideanVector::getNumDimensions() const{
@@ -223,11 +226,9 @@ namespace evec {
             delete[] magnitude;
             dimension = ev.dimension;
             magnitude = ev.magnitude;
-//            for (auto i = 0U; i < ev.dimension; ++i) {
-//                this->magnitude[i] = ev.magnitude[i];
-//            }
-          //  delete[] ev.magnitude; std::cout <<"      2     free" << ev.magnitude<<"\n";
-          //  ev.dimension = 0U;
+
+            ev.magnitude = nullptr;
+            ev.dimension = 0;
         }
         return *this;
     }

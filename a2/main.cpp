@@ -71,7 +71,6 @@ int main() {
 
     evec::EuclideanVector sa {1,2,3};
     evec::EuclideanVector ps = sa;
-    sa.magnitude[2] = 100;
     //std::cout << sa.magnitude << ps.magnitude;
 
 
