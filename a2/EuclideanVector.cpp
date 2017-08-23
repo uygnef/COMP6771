@@ -42,6 +42,7 @@ namespace evec {
     }
 
     double EuclideanVector::get(const int &i) const{
+        assert(static_cast<unsigned >(i) < getNumDimensions());
         return this->magnitude[static_cast<unsigned>(i)];
     }
 
@@ -176,6 +177,7 @@ namespace evec {
 
 //template<typename T>
     EuclideanVector operator/(const EuclideanVector &lhs, double scale) {
+       // assert(scale != 0);
         EuclideanVector ret(lhs.dimension);
         for (auto i = 0U; i < lhs.dimension; ++i) {
             ret.magnitude[i] = lhs.magnitude[i] / scale;
@@ -212,10 +214,16 @@ namespace evec {
     }
 
     EuclideanVector& EuclideanVector::operator=(const EuclideanVector &rhs) {
-        if(this != &rhs){
-            for(auto i=0U; i < rhs.dimension; ++i){
-                this->magnitude[i] = rhs.magnitude[i];
-            }
+        if(this == &rhs){
+            return *this;
+        }
+        if (magnitude != nullptr){
+            delete[] magnitude;
+        }
+        dimension = rhs.dimension;
+        magnitude = new double[dimension];
+        for(auto i=0U; i < dimension; ++i){
+            magnitude[i] = rhs.magnitude[i];
         }
         return *this;
     }
@@ -231,7 +239,6 @@ namespace evec {
         }
         return *this;
     }
-
 
 }
 
