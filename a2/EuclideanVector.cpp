@@ -9,6 +9,8 @@ namespace evec {
     EuclideanVector::EuclideanVector(const EuclideanVector &a){
         dimension = a.dimension;
         magnitude = new double[dimension];
+        is_change = a.is_change;
+        normal = a.normal;
 #ifdef DEBUG
         std::cout <<"1 allocate" << magnitude<<"\n";
 #endif
@@ -20,6 +22,8 @@ namespace evec {
     EuclideanVector::EuclideanVector(EuclideanVector &&a) {
             dimension = a.dimension;
             magnitude = a.magnitude;
+            normal = a.normal;
+            is_change = a.is_change;
 
             a.dimension = 0;
             a.magnitude = nullptr;
@@ -47,24 +51,31 @@ namespace evec {
     }
 
     double EuclideanVector::getEuclideanNorm() const{
+        if(!is_change){
+            return normal;
+        }
         double sum_power{0};;
         for (auto i = 0U; i < this->dimension; ++i) {
             sum_power += pow(this->magnitude[i], 2);
         }
-        return sqrt(sum_power);
+        normal = sqrt(sum_power);
+        is_change = false;
+        return normal;
     }
 
-    EuclideanVector EuclideanVector::createUnitVector() const {
+    EuclideanVector EuclideanVector::createUnitVector() const{
         double norm_dist = this->getEuclideanNorm();
         EuclideanVector ret{*this};
         for (auto i = 0U; i < this->dimension; ++i) {
             ret.magnitude[i] /= norm_dist;
         }
+        ret.is_change = true;
         return ret;
     }
 
     double &EuclideanVector::operator[](unsigned i) {
         assert(i < this->dimension);
+        is_change = true;
         return this->magnitude[i];
     }
 
@@ -78,6 +89,7 @@ namespace evec {
         for (auto i = 0U; i < this->dimension; ++i) {
             this->magnitude[i] += x.magnitude[i];
         }
+        is_change = true;
         return *this;
     }
 
@@ -86,6 +98,7 @@ namespace evec {
         for (auto i = 0U; i < this->dimension; ++i) {
             this->magnitude[i] -= x.magnitude[i];
         }
+        is_change = true;
         return *this;
     }
 
@@ -93,6 +106,7 @@ namespace evec {
         for (auto i = 0U; i < this->dimension; ++i) {
             this->magnitude[i] *= x;
         }
+        is_change = true;
         return *this;
     }
 
@@ -101,6 +115,7 @@ namespace evec {
         for (auto i = 0U; i < this->dimension; ++i) {
             magnitude[i] /= x;
         }
+        is_change = true;
         return *this;
     }
 
@@ -225,6 +240,7 @@ namespace evec {
         for(auto i=0U; i < dimension; ++i){
             magnitude[i] = rhs.magnitude[i];
         }
+        is_change = true;
         return *this;
     }
 
@@ -237,6 +253,7 @@ namespace evec {
             ev.magnitude = nullptr;
             ev.dimension = 0;
         }
+        is_change = true;
         return *this;
     }
 

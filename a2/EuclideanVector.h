@@ -24,6 +24,7 @@ namespace evec {
             std::cout <<"3 allocate" << magnitude<<"\n";
 #endif
             magnitude[0] = 0.0;
+            is_change = true;
         }
 
         EuclideanVector(double length): dimension{static_cast<unsigned>(length)},
@@ -34,6 +35,7 @@ namespace evec {
             for(auto i=0U; i<dimension; ++i){
                 magnitude[i] = 0.0;
             }
+            is_change = true;
         }
 
         EuclideanVector(unsigned length, double mag) : dimension{length},
@@ -44,6 +46,7 @@ namespace evec {
             for (auto i = 0U; i < length; ++i) {
                 magnitude[i] = mag;
             }
+            is_change = true;
         };
 
         template<typename IT>
@@ -62,6 +65,8 @@ namespace evec {
                 magnitude[j] = static_cast<double>(*i);
                 j += 1;
             }
+
+            is_change = true;
         }
 
         EuclideanVector(std::initializer_list<double> values){
@@ -75,6 +80,7 @@ namespace evec {
                 magnitude[i] = value;
                 ++i;
             }
+            is_change = true;
         }
 
         EuclideanVector(const EuclideanVector &a);
@@ -135,7 +141,8 @@ namespace evec {
     private:
         unsigned dimension;
         double *magnitude;
-
+        mutable double normal;
+        mutable bool is_change = false;
     };
 }
 /*
