@@ -1,0 +1,308 @@
+
+!!section banner
+#######   ###    #####  #        #####   #####  #######
+#        #   #  #     # #    #  #     # #     # #
+#       # #   # #     # #    #  #     #       # #
+ #####  #  #  #  ###### #######  ######  #####   #####
+      # #   # #       #      #        #       #       #
+#     #  #   #  #     #      #  #     # #     # #     #
+ #####    ###    #####       #   #####   #####   #####
+
+5094935 Feng, Yu                                8543   COMPCS
+
+Submissions:-
+
+S 0     Tue Aug 15 00:01:26 2017        5094935 mon17a ass1 0:-23
+S 0     Tue Aug 15 20:30:56 2017        5094935 mon17a ass1 0:-3
+
+Sun Aug 20 23:19:18 2017                ## weber.orchestra.cse.unsw.EDU.AU ##
+!!section listing
+-rw------- z5094935/z5094935 4112 2017-08-15 20:28 calculator.cpp
+dos2unix: converting file calculator.cpp to Unix format ...
+
+===============================================================================
+-rw------- 1 cs6771 cs6771 4112 Aug 20 23:19 calculator.cpp
+===============================================================================
+
+     1
+     2  #include <cmath>
+     3  #include <fstream>
+     4  #include <iostream>
+     5  #include <stack>
+     6
+     7  std::ostream& operator<<(std::ostream &out,  const struct number& A);
+     8  int arithmetic(const std::string &input);
+     9  bool handle_number(const std::string &input);
+    10  void parse_all(std::ifstream &in, const std::string &s);
+    11  void parse_token (const std::string &line);
+    12  void repeat(const int &position, std::ifstream &in);
+    13
+    14
+    15  struct number{
+    16      double value;
+    17      bool is_int;
+    18  };
+    19  std::stack<struct number> stack;
+        ^
+        + ========================= +
+        + Dont use global variables +
+        + ========================= +
+                   ^
+                   + =================== +
+                   + can just say number +
+                   + =================== +
+    20
+    21
+    22  int main(int argc, char* argv[]) {
+    23      // setup the print out format for the precision required.
+    24      std::cout.setf(std::ios::fixed,std::ios::floatfield);
+    25      std::cout.precision(3);
+    26
+    27      // open the file for reading
+    28      std::ifstream in;
+    29      in.open(argv[1]);
+    30
+    31      // string to be read into
+    32      std::string s;
+    33      // read the file while we have input.
+    34      while (in >> s) {
+    35          parse_all(in, s);
+    36      }
+    37      in.close();
+    38  }
+    39
+    40  std::ostream& operator<<(std::ostream &out, const struct number& A){
+                                                                         ^
+     + ================================================================= +
+     + Avoid all caps names. These should be for #defines only. See ES.9 +
+     + ================================================================= +
+    41          if (A.is_int){
+    42                  out << static_cast<int>(A.value);
+    43          }else{
+    44                  out << A.value;
+    45          }
+    46          return out;
+    47  }
+    48
+    49  void parse_all(std::ifstream &in, const std::string &s){
+    50      if(s == "repeat"){
+    51          repeat(in.tellg(), in);
+    52      }else{
+    53          parse_token(s);
+    54      }
+    55
+    56  }
+    57
+    58  void repeat(const int &position, std::ifstream &in) {
+    59
+    60      const int times = static_cast<int>(stack.top().value);
+    61      stack.pop();
+    62
+    63      std::string s;
+    64      for(auto i=0; i<times; i++){
+    65          while(in >> s){
+    66              if(s == "endrepeat"){
+    67                  if(i != times - 1){
+    68                      in.clear();
+    69                      in.seekg(position, in.beg);
+                            ^
+                            + ======================== +
+                            + Don't use seek to repeat +
+                            + ======================== +
+    70                  }
+    71                  break;
+    72              }
+    73              parse_all(in, s);
+    74          }
+    75      }
+    76
+    77  }
+    78
+    79
+    80  void parse_token(const std::string &input){
+    81
+    82      //handle float
+    83      if(handle_number(input)) {
+    84          return;
+    85      }
+    86
+    87      if(input == "pop"){
+    88          stack.pop();
+    89          return;
+    90      }
+    91
+    92      if(input == "add" || input == "sub" || input == "mult" || input == "div" || input == "sqrt"){
+    93          arithmetic(input);
+    94          return;
+    95      }
+    96
+    97      if(input == "reverse"){
+            ^
+            + ======================= +
+            + use else if, not return +
+            + ======================= +
+    98          const auto depth = static_cast<int>(stack.top().value);
+    99          stack.pop();
+   100          struct number queue[depth];
+   101          for(auto i = 0; i < depth; i++){
+   102              queue[i] = stack.top();
+   103              stack.pop();
+   104          }
+   105
+   106          for(auto j: queue){
+   107              stack.push(j);
+   108          }
+   109          return;
+   110      }
+   111      std::cerr << "Unrecognized symbols: " << input << std::endl;
+   112      exit(-1);
+            ^
+            + ============== +
+            + use exceptions +
+            + ============== +
+   113
+   114  }
+   115
+   116  bool handle_number(const std::string &input){
+   117
+   118      if (isdigit(input[0]) == 1){
+   119          struct number new_number{};
+   120          //handle double
+   121          if (input.find('.') != std::string::npos){
+   122              new_number.is_int = false;
+   123              new_number.value = std::stod(input);
+   124          }else{
+   125              //handle int
+   126              new_number.value = std::stoi(input);
+   127              new_number.is_int = true;
+   128          }
+   129          stack.push(new_number);
+   130          return true;
+   131      }
+   132      return false;
+   133  }
+   134
+   135  int arithmetic(const std::string &input) {
+   136
+   137      struct number x = stack.top();
+   138      stack.pop();
+   139
+   140      if(input == "sqrt"){
+   141          if(x.value < 0){
+   142              std::cerr << "ValueError: sqrt domin error\n";
+   143              exit(-1);
+   144          }
+   145          struct number result{};
+   146          result.is_int = x.is_int;
+   147          result.value = std::sqrt(x.value);
+   148          stack.push(result);
+   149          std::cout << "sqrt " << x << " = " << result << std::endl;
+   150          return 0;
+   151      }
+   152
+   153      struct number y = stack.top();
+   154      stack.pop();
+   155      struct number result{};
+   156      result.is_int = x.is_int && y.is_int;
+   157      std::cout << x;
+   158
+   159      if(input == "add"){
+   160          std::cout << " + ";
+   161          result.value = x.value + y.value;
+   162      }
+   163      if(input == "sub"){
+   164          std::cout << " - ";
+   165          result.value = x.value - y.value;
+   166      }
+   167      if(input == "mult"){
+   168          std::cout << " * ";
+   169          result.value = x.value * y.value;
+   170      }
+   171      if(input == "div"){
+   172          std::cout << " / ";
+   173          result.value = x.value / y.value;
+   174      }
+   175      std::cout << y << " = " << result << std::endl;
+   176      stack.push(result);
+   177
+   178      return 0;
+   179  }
+        ^
+        + ========================================================================== +
+        + Comments, formatting, layout, and style: 10/10                             +
+        + (-1 * 1) Avoid all caps names. These should be for #defines only. See ES.9 +
+        + (-1 * 1) Dont use global variables                                         +
+        + Code structure: 8/10                                                       +
+        + C++ feature usage: 10/10                                                   +
+        + ========================================================================== +
+
+Compiling with -std=c++11 -Wall -Werror -O2 -o calculator ...
+
+!!section tests
+** Test 1: Test 1
+--------------------------------
+** Test passed
+--------------------------------
+** Test 2: Test 2
+--------------------------------
+** Test passed
+--------------------------------
+** Test 3: Test 3
+--------------------------------
+** Test failed (student's output on the left, expected on the right). Output difference:-
+3.700 + 2.300 = 6.000                                           3.700 + 2.300 = 6.000
+6.000 - 1 = 5.000                                               6.000 - 1 = 5.000
+6.000 * 5.000 = 30.000                                          6.000 * 5.000 = 30.000
+8 / 7 = 1                                                       8 / 7 = 1
+1 / 30.000 = 0.038                                            | 1 / 30.000 = 0.033
+sqrt 0.038 = 0.195                                            | sqrt 0.033 = 0.183
+--------------------------------
+** Test 4: Test 4
+--------------------------------
+** Test passed
+--------------------------------
+** Test 5: Test 5
+--------------------------------
+** Test passed
+--------------------------------
+** Test 6: Test 6
+--------------------------------
+** Test passed
+--------------------------------
+** Test 7: Test 7
+--------------------------------
+** Test passed
+--------------------------------
+!!section assess
+
+!!perftab       ** PERFORMANCE ANALYSIS **
+
+Test  1 (1)     Test 1 ..  !!PASSed
+Test  2 (1)     Test 2 ..  !!PASSed
+Test  3 (1)     Test 3 ..  !!FAILed (-1)
+Test  4 (1)     Test 4 ..  !!PASSed
+Test  5 (1)     Test 5 ..  !!PASSed
+Test  6 (1)     Test 6 ..  !!PASSed
+Test  7 (1)     Test 7 ..  !!PASSed
+
+!!perfmark      ** TOTAL PERFORMANCE MARK:    6/7
+
+!!marktab       **  MARKER'S  ASSESSMENT  **
+
+Comments and code formatting/layout/style
+                                          (1.0) 1
+
+Code Structure (functions, variable names, scope, etc)
+                                          (1.0) .8
+
+C++ Feature Usage (STL library usage, etc)
+                                          (1.0) 1
+
+!!finalmark     **  FINAL  ASSIGNMENT  MARK:    8.8/10
+
+5094935 Feng, Yu                                8543   COMPCS
+
+
+Marked by msta784 on Sun Aug 27 16:07:39 2017
+
+
