@@ -5,15 +5,14 @@
 #ifndef A2_EUCLIDEANVECTOR_H
 #define A2_EUCLIDEANVECTOR_H
 #pragma once
-
-#include <cmath>
-#include <memory>
-#include <cstring>
 #include <cassert>
-#include <vector>
-#include <list>
-#include <stdarg.h>
+#include <cmath>
+#include <cstring>
 #include <iostream>
+#include <list>
+#include <memory>
+#include <stdarg.h>
+#include <vector>
 
 namespace evec {
     class EuclideanVector {
@@ -130,7 +129,6 @@ namespace evec {
         friend EuclideanVector operator-(const EuclideanVector &lhs, const EuclideanVector &rhs);
 
         friend EuclideanVector operator/(const EuclideanVector &lhs, double scale);
-
 
         friend EuclideanVector operator*(const EuclideanVector& rhs, double scale);
 

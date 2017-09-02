@@ -138,9 +138,10 @@ namespace evec {
 
     std::ostream &operator<<(std::ostream &os, const EuclideanVector &v) {
         os << "[";
-        for (auto i = 0U; i < v.dimension; ++i) {
-            os << v.magnitude[i];
-            if (i != v.dimension - 1) {
+        auto dimension = v.getNumDimensions();
+        for (auto i = 0U; i < dimension; ++i) {
+            os << v.get(i);
+            if (i != dimension - 1) {
                 os << " ";
             }
         }
@@ -149,11 +150,11 @@ namespace evec {
     }
 
     bool operator==(const EuclideanVector &lhs, const EuclideanVector &rhs) {
-        if (lhs.dimension != rhs.dimension) {
+        if (lhs.getNumDimensions() != rhs.getNumDimensions()) {
             return false;
         }
-        for (auto i = 0U; i < lhs.dimension; ++i) {
-            if (lhs.magnitude[i] != rhs.magnitude[i]) {
+        for (auto i = 0U; i < lhs.getNumDimensions(); ++i) {
+            if (lhs.get(i) != rhs.get(i)) {
                 return false;
             }
         }
@@ -161,11 +162,11 @@ namespace evec {
     }
 
     bool operator!=(const EuclideanVector &lhs, const EuclideanVector &rhs) {
-        if (lhs.dimension != rhs.dimension) {
+        if (lhs.getNumDimensions() != rhs.getNumDimensions()) {
             return true;
         }
-        for (auto i = 0U; i < lhs.dimension; ++i) {
-            if (lhs.magnitude[i] != rhs.magnitude[i]) {
+        for (auto i = 0U; i < lhs.getNumDimensions(); ++i) {
+            if (lhs.get(i) != rhs.get(i)) {
                 return true;
             }
         }
@@ -173,9 +174,9 @@ namespace evec {
     }
 
     EuclideanVector operator+(const EuclideanVector &lhs, const EuclideanVector &rhs) {
-        assert(lhs.dimension == rhs.dimension);
-        EuclideanVector ret(rhs.dimension);
-        for (auto i = 0U; i < lhs.dimension; ++i) {
+        assert(lhs.getNumDimensions() == rhs.getNumDimensions());
+        EuclideanVector ret(rhs.getNumDimensions());
+        for (auto i = 0U; i < lhs.getNumDimensions(); ++i) {
             ret.magnitude[i] = rhs.magnitude[i] + lhs.magnitude[i];
         }
         return ret;
@@ -222,8 +223,8 @@ namespace evec {
     double operator*(const EuclideanVector &rhs, const EuclideanVector &lhs) {
         assert(lhs.dimension == rhs.dimension);
         double ret = 0;
-        for (auto i = 0U; i < lhs.dimension; ++i) {
-            ret += (lhs.magnitude[i] * rhs.magnitude[i]);
+        for (auto i = 0U; i < lhs.getNumDimensions(); ++i) {
+            ret += (lhs.get(i) * rhs.get(i));
         }
         return ret;
     }
