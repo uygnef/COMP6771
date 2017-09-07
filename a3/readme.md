@@ -47,7 +47,7 @@ where N is the Node value data type and E is the Edge weight data type.
 
 
 
-In addition to these operations, you should also implement the following four operations, which provide a fake iterator for enumerating all the node values in a graph.#### You can abstract a graph in any sequence, as long as the sequence consists of all and only the nodes in the graph.
+In addition to these operations, you should also implement the following four operations, which provide a fake iterator for enumerating all the node values in a graph. **You can abstract a graph in any sequence, as long as the sequence consists of all and only the nodes in the graph.**
 
 | Member                 | Description                                                                                  |
 |------------------------|----------------------------------------------------------------------------------------------|
@@ -62,10 +62,7 @@ You can use the four member functions as follows:
    for (g.begin(); !g.end(); g.next())
        std::cout << g.value() << std::endl;
 This `iterator' is not nearly as powerful as a proper iterator (e.g., the one to be implemented in Assignment 4), but it should suffice to give you an idea of what iterators are all about. You must make sure that these member functions can be invoked correctly on both const and non-const graphs.
-Hint: These four functions have short implementations. Review the mutable qualifier. In the reference solution, there are altogether 4 lines in the bodies of these four functions, with 1 line per
-
-
-function.
+Hint: These four functions have short implementations. Review the **mutable** qualifier. In the reference solution, there are altogether 4 lines in the bodies of these four functions, with 1 line per function.
 
 Note: Your Graph class should not expose any other public members other than those listed above, although you can add whatever private member functions and classes as you see fit. This implies that your Node and Edge classes should be private nested classes.
 
