@@ -39,6 +39,7 @@ namespace evec {
 
         EuclideanVector(unsigned length, double mag) : dimension{length},
                                                        magnitude{new double[length]} {
+
 #ifdef DEBUG
             std::cout <<"5 allocate" << magnitude<<"\n";
 #endif

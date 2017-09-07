@@ -17,6 +17,7 @@ namespace evec {
         for (auto i = 0U; i < dimension; ++i) {
             magnitude[i] = a.magnitude[i];
         }
+        std::cout << "call copy constructor.";
     }
 
     EuclideanVector::EuclideanVector(EuclideanVector &&a) {
@@ -177,16 +178,16 @@ namespace evec {
         assert(lhs.getNumDimensions() == rhs.getNumDimensions());
         EuclideanVector ret(rhs.getNumDimensions());
         for (auto i = 0U; i < lhs.getNumDimensions(); ++i) {
-            ret.magnitude[i] = rhs.magnitude[i] + lhs.magnitude[i];
+            ret.magnitude[i] = rhs.get(i) + lhs.get(i);
         }
         return ret;
     }
 
     EuclideanVector operator-(const EuclideanVector &lhs, const EuclideanVector &rhs) {
-        assert(lhs.dimension == rhs.dimension);
-        EuclideanVector ret(rhs.dimension);
-        for (auto i = 0U; i < lhs.dimension; ++i) {
-            ret.magnitude[i] = lhs.magnitude[i] - rhs.magnitude[i];
+        assert(lhs.getNumDimensions() == rhs.getNumDimensions());
+        EuclideanVector ret(rhs.getNumDimensions());
+        for (auto i = 0U; i < lhs.getNumDimensions(); ++i) {
+            ret.magnitude[i] = lhs.get(i) - rhs.get(i);
         }
         return ret;
     }
@@ -194,9 +195,9 @@ namespace evec {
 //template<typename T>
     EuclideanVector operator/(const EuclideanVector &lhs, double scale) {
        // assert(scale != 0);
-        EuclideanVector ret(lhs.dimension);
-        for (auto i = 0U; i < lhs.dimension; ++i) {
-            ret.magnitude[i] = lhs.magnitude[i] / scale;
+        EuclideanVector ret(lhs.getNumDimensions());
+        for (auto i = 0U; i < lhs.getNumDimensions(); ++i) {
+            ret.magnitude[i] = lhs.get(i) / scale;
         }
         return ret;
     }
@@ -204,7 +205,7 @@ namespace evec {
 
     EuclideanVector operator*(const EuclideanVector &lhs, double scale) {
         EuclideanVector ret{lhs};
-        for (auto i = 0U; i < lhs.dimension; ++i) {
+        for (auto i = 0U; i < lhs.getNumDimensions(); ++i) {
             ret.magnitude[i] *= scale;
         }
         return ret;
@@ -213,7 +214,7 @@ namespace evec {
 
     EuclideanVector operator*(double scale, const EuclideanVector &lhs) {
         EuclideanVector ret{lhs};
-        for (auto i = 0U; i < lhs.dimension; ++i) {
+        for (auto i = 0U; i < lhs.getNumDimensions(); ++i) {
             ret.magnitude[i] *= scale;
         }
         return ret;

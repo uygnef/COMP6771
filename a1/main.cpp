@@ -31,6 +31,7 @@ int main(int argc, char* argv[]) {
     // string to be read into
     std::string s;
     // read the file while we have input.
+
     while (in >> s) {
         parse_all(in, s);
     }

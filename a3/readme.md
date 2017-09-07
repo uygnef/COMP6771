@@ -27,8 +27,9 @@ In what follows, we assume the graph template class is declared as:
 
 template <typename N, typename E> class Graph;
 where N is the Node value data type and E is the Edge weight data type.
-Member	Description and Hints	Examples
-Constructor	A user-defined or compiler-synthesised default constructor for an empty graph.	
+|Member|	Description and Hints|	Examples
+|:------|:-------------|:-------------|
+|Constructor|	A user-defined or compiler-synthesised default constructor for an empty graph.	
 gdwg::Graph<std::string,int> g;
 Copy and Move Constructors	User-defined or compiler-synthesised copy and move constructors as required.	 
 Copy and Move Assignment operators	User-defined or compiler-synthesised copy and move assignment operators as required.	 

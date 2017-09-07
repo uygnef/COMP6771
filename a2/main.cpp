@@ -5,7 +5,11 @@
 
 #include "EuclideanVector.h"
 
+int a(evec::EuclideanVector a){
+    std::cout << a.getNumDimensions();
+    return 1;
+}
 int main() {
     evec::EuclideanVector v1 = {6, 8};
-    std::cout<< v1.getEuclideanNorm();
+    a(v1);
 }
