@@ -17,34 +17,10 @@ namespace gdwg {
         struct Node;
         struct Edge;
 
-
         struct Node{
             N val;
-
-            //add compare rule for set
-            struct Compare{
-                bool operator()(const std::shared_ptr<Edge>& a, const std::shared_ptr<Edge>& b)const{
-                    if (a->dst.lock()->val == b->dst.lock()->val){
-                        return a->weight < b->weight;
-                    }
-                    return a->dst.lock()->val < b->dst.lock()->val;
-                }
-            };
-            std::set<std::shared_ptr<Edge>, Compare> edges;
-
-            bool find_dst(N n_val, E e_weight){
-                for(auto i=edges.begin(); i != edges.end(); ++i){
-                    if(i->get()->dst.lock()->val == n_val){
-                        if(i->get()->weight){
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            }
-
+            std::set<std::shared_ptr<Edge>> edges;
             Node() = default;
-
             Node(N val):val{val}{}
         };
 
@@ -52,15 +28,11 @@ namespace gdwg {
             std::weak_ptr<Node> dst;
             E weight;
 
-            Edge(std::shared_ptr<Node> destination, E w):weight{w}{
-                dst = destination;
-            }
+            Edge(std::shared_ptr<Node> destination, E w):weight{w}{ dst = destination;}
+            Edge() = delete;
+            Edge(N d, E w):weight{w}{ dst = std::make_shared<Node>(dst); }
 
-            Edge() = default;
-
-            ~Edge(){
-                dst.reset();
-            }
+            ~Edge(){ dst.reset(); }
         };
 
         std::map<N, std::shared_ptr<Node>> nodes;
@@ -105,8 +77,24 @@ namespace gdwg {
             throw std::runtime_error("add Edge: source node does not exist.");
         }
 
-        auto dst_node = src_i.second.get();
-        if(dst_node)
+        auto dst_i = nodes.find(dst);
+        if(dst_i == nodes.end()){
+            throw std::runtime_error("add Edge: destination node does not exist.");
+        }
+
+        //TODO: use more efficiency method to find if edge is already in the edges set.
+        //TODO: reload set find????, reload compare???
+        for(auto i: src_i->second->edges){
+            if(i.get()->dst.lock() == dst_i->second){
+                if(w == i->weight){
+                    return false;
+                }
+            }
+        }
+        //get source node, and add new edge pointer to it's edges map
+        src_i->second->edges.insert(std::make_shared<Edge>(Edge{dst_i->second, w}) );
+        return true;
+
     }
 
 #include "Graph.tem"
