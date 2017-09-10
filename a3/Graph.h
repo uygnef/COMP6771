@@ -19,7 +19,7 @@ namespace gdwg {
 
         struct Node{
             N val;
-            std::set<std::shared_ptr<Edge>> edges;
+            std::set<std::unique_ptr<Edge>> edges;
             Node() = default;
             Node(N val):val{val}{}
         };
@@ -84,7 +84,7 @@ namespace gdwg {
 
         //TODO: use more efficiency method to find if edge is already in the edges set.
         //TODO: reload set find????, reload compare???
-        for(auto i: src_i->second->edges){
+        for(const auto& i: src_i->second->edges){
             if(i.get()->dst.lock() == dst_i->second){
                 if(w == i->weight){
                     return false;
@@ -92,7 +92,7 @@ namespace gdwg {
             }
         }
         //get source node, and add new edge pointer to it's edges map
-        src_i->second->edges.insert(std::make_shared<Edge>(Edge{dst_i->second, w}) );
+        src_i->second->edges.insert(std::make_unique<Edge>(Edge{dst_i->second, w}) );
         return true;
 
     }
