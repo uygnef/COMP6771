@@ -16,7 +16,6 @@ int main() {
     std::cout << " add 23:\n";
     g.print_node();
 
-
     std::cout<<g.addEdge("12", "23", 12)<<std::endl;
     std::cout<<g.addEdge("12", "23", 11)<<std::endl;
     std::cout<<g.addEdge("12", "23", 11)<<std::endl;
@@ -27,9 +26,18 @@ int main() {
     g.replace("12", "45");
     std::cout << " replace:\n";
     g.print_node();
+
+    g.addEdge("23", "45", 15);
+    g.addEdge("45", "23", 5);
+    g.print_node();
 /*
     std::cout << "------------------\n";
     g.mergeReplace("45", "23");
+    g.print_node();
+*/
+    /*
+    std::cout<<"delete node: \n";
+    g.deleteNode("45");
     g.print_node();
 */
     return 0;
