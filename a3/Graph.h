@@ -95,6 +95,27 @@ namespace gdwg {
             }
         };
 
+        //TODO: O(n) complexity, can I get O(n)?
+        Edge_ptr is_in_edges(N src, N dst, E w){
+            for(const auto& i: edges){
+                if( i.get()->weight == w && i.get()->src.lock().get()->val == src
+                    && i.get()->dst.lock().get()->val == dst){
+                    std::cout << i.get()->weight <<"==" << w <<" ---"<<i.get()->src.lock().get()->val <<" == "<<src;
+                    return i;
+                }
+            }
+            return {};
+        }
+
+        Node_ptr is_in_nodes(N name){
+            for(const auto& i:nodes){
+                if(i.get()->val == name){
+                    return i;
+                }
+            }
+            return {};
+        }
+
         std::set<std::shared_ptr<Node>, NodeCompare> nodes;
         std::set<std::shared_ptr<Edge>, EdgeCompare> edges;
 
@@ -111,11 +132,25 @@ namespace gdwg {
             nodes.clear();
         }
 
+        void print_edge(){
+            for(auto i:edges){
+                std::cout << i.get()->src.lock().get()->val << " " << i.get()->dst.lock().get()->val << " " <<i.get()->weight << std::endl;
+            }
+        }
+
         void print_node(){
+            //TODO: delete element
             for(auto i: nodes){
                 std::cout <<"node is: " << i.get()->val<<std::endl;
-                for (const auto& j:i.get()->out_edges){
-                    std::cout <<"   edge is: " << j.lock().get()->weight;
+                for (const auto j:i.get()->out_edges){
+                    if(!j.expired()){
+                        std::cout <<"   out edge is: " << j.lock().get()->weight;
+                    }
+                }
+                for (const auto& j:i.get()->in_edges){
+                    if(!j.expired()){
+                        std::cout <<"   in edge is: " << j.lock().get()->weight;
+                    }
                 }
                 std::cout<<std::endl;
             }
@@ -129,6 +164,9 @@ namespace gdwg {
         void mergeReplace(const N& oldData, const N& newData);
 
         void deleteNode(const N&) noexcept;
+
+        void deleteEdge(const N& src, const N& dst, const E& w) noexcept;
+
 
     };
 
@@ -156,7 +194,7 @@ namespace gdwg {
         }
 
         //check if the new edge is already in the edges sets.
-        auto new_edge = std::make_shared<Edge>(Edge{*dst_index ,*dst_index, w});
+        auto new_edge = std::make_shared<Edge>(Edge{*src_index ,*dst_index, w});
         bool is_unique = edges.insert(new_edge).second;
         if(!is_unique){
             return false;
@@ -216,49 +254,76 @@ namespace gdwg {
             throw std::runtime_error("mergeReplace: new data node does not exist.");
         }
 
-        for(auto &in_edge: old_node->get()->in_edges){
-            //find if changed edge is duplicated in new node.
-            std::shared_ptr<Edge> temp_edge = std::make_shared<Edge>(Edge(in_edge.lock().get()->src, *new_node, in_edge.lock().get()->weight));
-            const auto& is_in = edges.find(temp_edge);
-            // TODO:
-            
-            if(is_in != edges.end()){
-                in_edge.lock().get()->src = ;
-            }
-            auto old_src_node = in_edge.lock()->src;
-            /* check if src node which have edge to old node already have this edge with same weight pointed to new node.
-               if not change the dst node of this edge to new node.
-             */
-            if(!old_src_node.lock()->if_have_out_edge(new_node, in_edge.lock()->weight)){
-                in_edge.lock()->dst = new_node;
-                new_node->in_edges.push_back(in_edge);
+        for(const auto &in_edge: old_node->get()->in_edges) {
+            std::cout << "--- edge is: "<<in_edge.lock().get()->src.lock().get()->val <<"  "<<in_edge.lock().get()->dst.lock().get()->val << " "<<in_edge.lock().get()->weight<<std::endl;
+            const auto& result_pointer = is_in_edges(in_edge.lock().get()->src.lock().get()->val, new_node->get()->val, in_edge.lock().get()->weight).lock();
+            if ( result_pointer != nullptr) {
+                edges.erase(in_edge.lock());
+            } else {
+                in_edge.lock().get()->dst = *new_node;
+                new_node->get()->in_edges.insert(in_edge);
             }
         }
 
-        for(auto &out_edge: old_node->out_edges){
-            auto& dst_from_old_node = out_edge.get()->dst;
-            if( !dst_from_old_node.lock()->if_have_out_edge(new_node, out_edge->weight)){
-                new_node->out_edges.insert(out_edge);
+        for(const auto &out_edge: old_node->get()->out_edges) {
+            const auto& result_pointer = is_in_edges(new_node->get()->val, out_edge.lock().get()->dst.lock().get()->val, out_edge.lock().get()->weight).lock();
+            if (result_pointer != nullptr) {
+                edges.erase(out_edge.lock());
+            } else {
+                out_edge.lock().get()->src = *new_node;
+                new_node->get()->out_edges.insert(out_edge);
             }
         }
-
-        nodes.erase(old_node_pair);
+        nodes.erase(old_node);
     }
 
     template <typename N, typename E>
     void Graph<N, E>::deleteNode(const N &node_name) noexcept {
-        const auto& delete_node = nodes.find(node_name);
-        if(delete_node == nodes.end()){
+        const auto& node = is_in_nodes(node_name);
+
+        if(node.lock() == nullptr){
             return;
         }
+
         /*
          * disable all in_edgs(node owns out edgs)
          */
-        const auto& node = delete_node->second;
-        for(auto& in_edge: node->in_edges){
 
+        for(const auto& i: node.lock().get()->out_edges){
+            if(!i.expired()){
+                edges.erase(i.lock());
+            }
         }
-        nodes.erase(delete_node);
+
+        for(const auto& i: node.lock().get()->in_edges){
+            if(!i.expired()){
+                edges.erase((i.lock()));
+            }
+        }
+        nodes.erase(node.lock());
+    }
+
+
+    template <typename N, typename E>
+    void Graph<N, E>::deleteEdge(const N &src, const N &dst, const E &w)noexcept {
+        for(auto i=edges.begin(); i != edges.end();){
+            if(i->get()->weight == w && i->get()->dst.lock().get()->val == dst && i->get()->src.lock().get()->val == src){
+               // std::cout << "--------------i is;" << *i;
+                edges.erase(i++);
+              //  i++;
+              //  std::cout << "----after-----i is;" << *i;
+
+            } else{
+                ++i;
+            }
+        }
+
+
+        //TODO: why I can not delete pointer in set by this method?
+//        const auto& search_pointer = is_in_edges(src, dst, w);
+//        if(search_pointer.lock() != nullptr){
+//            std::cout<< edges.erase(search_pointer.lock());
+//        }
     }
 
 
