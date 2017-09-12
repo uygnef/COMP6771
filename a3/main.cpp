@@ -38,6 +38,8 @@ int main() {
     g.addNode("fengyu");
     g.addEdge("fengyu", "45", 9);
     g.addEdge("fengyu", "23", 9);
+    g.addEdge("fengyu", "fengyu", 2);
+
     std::cout << "------------------\n";
     g.mergeReplace("45", "23");
     g.print_node();
@@ -48,13 +50,32 @@ int main() {
     g.deleteEdge("23", "23", 5);
     g.deleteEdge("23", "23", 5);
     g.deleteEdge("23", "23", 5);
-
     g.print_node();
     g.print_edge();
-    /*
-    std::cout<<"delete node: \n";
-    g.deleteNode("45");
+
+    std::cout << "clear:\n";
     g.print_node();
+    g.print_edge();
+
+    g.addEdge("fengyu", "fengyu", 3);
+    std::cout<<"-------------delete node: \n";
+    g.deleteNode("23");
+    g.print_node();
+    g.print_edge();
+
+    std::cout << "IS SSSSSSSSSSSSS node:\n";
+    std::cout << g.isNode("23");
+/*
+    std::cout<<"-------------clear graph: \n";
+
+    g.clear();
+    g.print_edge();
+    g.print_node();
+
 */
+    std::cout<<"-------------is connect: \n";
+    std::cout << g.isConnected("fengyu", "fengyu");
+    g.addNode("23");
+    std::cout << g.isConnected("23", "fengyu");
     return 0;
 }

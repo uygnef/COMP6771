@@ -9,6 +9,7 @@
 #include <set>
 #include <map>
 #include <vector>
+#include <algorithm>
 
 namespace gdwg {
 
@@ -26,26 +27,40 @@ namespace gdwg {
 
         struct Node{
             N val;
-            std::set<Edge_ptr, EdgeCompare> out_edges;
-            std::set<Edge_ptr, EdgeCompare> in_edges;
+            std::vector<Edge_ptr> out_edges;
+            std::vector<Edge_ptr> in_edges;
             Node() = default;
             Node(N val):val{val}{}
 
-            /*
-             * check if this node have target edge in in_edges set
-             */
+            bool find_node(N dst){
+                for(auto i = out_edges.begin(); i != out_edges.end();){
+                    if(i->expired()) {
+                        out_edges.erase(i);
+                    }else if(i->lock().get()->dst.lock().get()->val == dst){
+                        return true;
+                    }
+                    ++i;
+                }
+                for(auto i = in_edges.begin(); i != in_edges.end();){
+                    if(i->expired()) {
+                        out_edges.erase(i);
+                    }else if(i->lock().get()->src.lock().get()->val == dst){
+                        return true;
+                    }
+                    ++i;
+                }
+                return false;
+            }
 
-            //TODO: use more efficiency method to find if edge is already in the edges set.
-            //TODO: reload set find????, reload compare???
-//            bool if_have_out_edge(const Node_ptr& dst, const E& weight){
-//                for(const auto &i: out_edges){
-//                    if(i->weight == weight && i->dst.lock().get() == dst.get()){
-//                        return true;
-//                    }
-//                }
-//                return false;
-//            }
-
+            unsigned long len(){
+                for(auto i = out_edges.begin(); i != out_edges.end();){
+                    if(i->expired()){
+                        out_edges.erase(i);
+                    }
+                    ++i;
+                }
+                return out_edges.size();
+            }
         };
 
         struct Edge{
@@ -85,7 +100,6 @@ namespace gdwg {
                 }else{
                     return a.lock().get()->weight < b.lock().get()->weight;
                 }
-
             }
         };
 
@@ -107,7 +121,7 @@ namespace gdwg {
             return {};
         }
 
-        Node_ptr is_in_nodes(N name){
+        Node_ptr is_in_nodes(N name) const{
             for(const auto& i:nodes){
                 if(i.get()->val == name){
                     return i;
@@ -167,6 +181,14 @@ namespace gdwg {
 
         void deleteEdge(const N& src, const N& dst, const E& w) noexcept;
 
+        void clear() noexcept;
+
+        bool isNode(const N& val) const;
+
+        bool isConnected(const N& src, const N& dst) const;
+
+        void printNodes() const;
+
 
     };
 
@@ -200,8 +222,10 @@ namespace gdwg {
             return false;
         }
 
-        src_index->get()->out_edges.insert(Edge_ptr(new_edge));
-        dst_index->get()->in_edges.insert(Edge_ptr(new_edge));
+
+        auto a = Edge_ptr(new_edge);
+        src_index->get()->out_edges.push_back(a);
+        dst_index->get()->in_edges.push_back(a);
         return true;
     }
 
@@ -261,7 +285,7 @@ namespace gdwg {
                 edges.erase(in_edge.lock());
             } else {
                 in_edge.lock().get()->dst = *new_node;
-                new_node->get()->in_edges.insert(in_edge);
+                new_node->get()->in_edges.push_back(in_edge);
             }
         }
 
@@ -271,7 +295,7 @@ namespace gdwg {
                 edges.erase(out_edge.lock());
             } else {
                 out_edge.lock().get()->src = *new_node;
-                new_node->get()->out_edges.insert(out_edge);
+                new_node->get()->out_edges.push_back(out_edge);
             }
         }
         nodes.erase(old_node);
@@ -297,7 +321,7 @@ namespace gdwg {
 
         for(const auto& i: node.lock().get()->in_edges){
             if(!i.expired()){
-                edges.erase((i.lock()));
+                edges.erase(i.lock());
             }
         }
         nodes.erase(node.lock());
@@ -308,22 +332,50 @@ namespace gdwg {
     void Graph<N, E>::deleteEdge(const N &src, const N &dst, const E &w)noexcept {
         for(auto i=edges.begin(); i != edges.end();){
             if(i->get()->weight == w && i->get()->dst.lock().get()->val == dst && i->get()->src.lock().get()->val == src){
-               // std::cout << "--------------i is;" << *i;
                 edges.erase(i++);
-              //  i++;
-              //  std::cout << "----after-----i is;" << *i;
-
             } else{
                 ++i;
             }
         }
+    }
 
+    template <typename N, typename E>
+    void Graph<N, E>::clear() noexcept {
+        edges.clear();
+        nodes.clear();
+    }
 
-        //TODO: why I can not delete pointer in set by this method?
-//        const auto& search_pointer = is_in_edges(src, dst, w);
-//        if(search_pointer.lock() != nullptr){
-//            std::cout<< edges.erase(search_pointer.lock());
-//        }
+    template <typename N, typename E>
+    bool Graph<N, E>::isNode(const N &val) const {
+        const auto& ret =  is_in_nodes(val);
+        if(ret.lock() == nullptr){
+            return false;
+        }
+        return true;
+    }
+
+    template <typename N, typename E>
+    bool Graph<N, E>::isConnected(const N &src, const N &dst) const {
+        const auto& src_node = is_in_nodes(src);
+        if(src_node.lock() == nullptr){
+            throw std::runtime_error("is Connected: source node does not exist.");
+        }
+
+        const auto& dst_node = is_in_nodes(dst);
+        if(dst_node.lock() == nullptr){
+            throw std::runtime_error("is Connected: destination does not exist.");
+        }
+
+        return src_node.lock().get()->find_node(dst);
+    }
+
+    template <typename N, typename E>
+    void Graph<N, E>::printNodes() const {
+        std::multimap<E, N> cache;
+        for(auto& node: nodes ){
+            cache.insert(std::make_pair(node.get()->len(), node.get()->val));
+        }
+        
     }
 
 
