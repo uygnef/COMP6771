@@ -227,17 +227,17 @@ void Graph<N, E>::printEdges(const N &val) const {
 }
 
 template <typename N, typename E>
-void Graph<N, E>::begin() {
+void Graph<N, E>::begin() const {
     iter = nodes.begin();
 }
 
 template <typename N, typename E>
-bool Graph<N, E>::end() {
+bool Graph<N, E>::end() const {
     return iter == nodes.end();
 }
 
 template <typename N, typename E>
-void Graph<N, E>::next() {
+void Graph<N, E>::next() const {
     ++iter;
 }
 

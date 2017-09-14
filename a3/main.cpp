@@ -4,10 +4,10 @@
 
 int main() {
     std::cout << "Hello, World!" << std::endl;
-    gdwg::Graph<std::string,int> g;
+    auto d = new gdwg::Graph<std::string,int>;
     std::cout << "start:\n";
-    g.print_node();
 
+    auto g = *d;
     g.addNode("12");
     std::cout << " add 12:\n";
     g.print_node();
