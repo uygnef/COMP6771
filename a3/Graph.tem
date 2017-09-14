@@ -2,7 +2,249 @@
 // Created by yu on 10/09/17.
 //
 
+template <typename N, typename E>
+bool Graph<N, E>::addNode(const N& input_node) {
+    return nodes.insert(std::make_shared<Node>(Node{input_node})).second;
+}
 
+template <typename N, typename E>
+bool Graph<N, E>::addEdge(const N& src, const N& dst, const E& w){
+    /*
+     * create a new node object, try to find it in the nodes set.
+     * TODO: avoid create new object, just found value in nodes set..
+     *
+     */
+    auto src_node = std::make_shared<Node>(Node(src));
+    auto src_index = nodes.find(src_node);
+    if(src_index == nodes.end()){
+        throw std::runtime_error("add Edge: source node does not exist.");
+    }
+    auto dst_node = std::make_shared<Node>(Node(dst));
+    auto dst_index = nodes.find(dst_node);
+    if(dst_index == nodes.end()){
+        throw std::runtime_error("add Edge: destination node does not exist.");
+    }
+
+    //check if the new edge is already in the edges sets.
+    auto new_edge = std::make_shared<Edge>(Edge{*src_index ,*dst_index, w});
+    bool is_unique = edges.insert(new_edge).second;
+    if(!is_unique){
+        return false;
+    }
+
+
+    auto a = Edge_ptr(new_edge);
+    src_index->get()->out_edges.push_back(a);
+    dst_index->get()->in_edges.push_back(a);
+    return true;
+}
+
+
+
+template <typename N, typename E>
+bool Graph<N, E>::replace(const N& oldData, const N& newData){
+    const auto& old_Node = std::make_shared<Node>(Node(oldData));
+    const auto& target_node = nodes.find(old_Node);
+    if(target_node == nodes.end()){
+        throw std::runtime_error("replace: old data node does not exist.");
+    }
+
+    const auto& new_Node = std::make_shared<Node>(Node(newData));
+    const auto& new_node = nodes.find(new_Node);
+    if(new_node != nodes.end()){
+        return false;
+    }
+
+    /*
+     * change the data(value) pointed by old shared pointer
+     * copy old pointer to new_pointer.
+     * delete old pointer in the nodes set.
+     * put new pointer into nodes set.
+     */
+
+    std::shared_ptr<Node> new_pointer = *target_node;
+    new_pointer.get()->val = newData;
+    nodes.erase(target_node);
+    nodes.insert(new_pointer);
+    return true;
+}
+
+/*
+ * For oldNode, insert all it's out edge into new node
+ *              change all it's in edge dst to new node
+ *              also need to check duplicated edge.
+ */
+template <typename N, typename E>
+void Graph<N, E>::mergeReplace(const N &oldData, const N &newData) {
+    const auto& _old_Node = std::make_shared<Node>(Node(oldData));
+    const auto& old_node = nodes.find(_old_Node);
+    if(old_node == nodes.end()){
+        throw std::runtime_error("mergeReplace: old data node does not exist.");
+    }
+
+    const auto& _new_node = std::make_shared<Node>(Node(newData));
+    const auto& new_node = nodes.find(_new_node);
+    if(new_node == nodes.end()){
+        throw std::runtime_error("mergeReplace: new data node does not exist.");
+    }
+
+    for(const auto &in_edge: old_node->get()->in_edges) {
+        const auto& result_pointer = is_in_edges(in_edge.lock().get()->src.lock().get()->val, new_node->get()->val, in_edge.lock().get()->weight).lock();
+        if ( result_pointer != nullptr) {
+            edges.erase(in_edge.lock());
+        } else {
+            in_edge.lock().get()->dst = *new_node;
+            new_node->get()->in_edges.push_back(in_edge);
+        }
+    }
+
+    for(const auto &out_edge: old_node->get()->out_edges) {
+        const auto& result_pointer = is_in_edges(new_node->get()->val, out_edge.lock().get()->dst.lock().get()->val, out_edge.lock().get()->weight).lock();
+        if (result_pointer != nullptr) {
+            edges.erase(out_edge.lock());
+        } else {
+            out_edge.lock().get()->src = *new_node;
+            new_node->get()->out_edges.push_back(out_edge);
+        }
+    }
+    nodes.erase(old_node);
+}
+
+template <typename N, typename E>
+void Graph<N, E>::deleteNode(const N &node_name) noexcept {
+    const auto& node = is_in_nodes(node_name);
+
+    if(node.get() == nullptr){
+        return;
+    }
+
+    /*
+     * disable all in_edgs(node owns out edgs)
+     */
+
+    for(const auto& i: node.get()->out_edges){
+        if(!i.expired()){
+            edges.erase(i.lock());
+        }
+    }
+
+    for(const auto& i: node.get()->in_edges){
+        if(!i.expired()){
+            edges.erase(i.lock());
+        }
+    }
+    nodes.erase(node);
+}
+
+
+template <typename N, typename E>
+void Graph<N, E>::deleteEdge(const N &src, const N &dst, const E &w)noexcept {
+    for(auto i=edges.begin(); i != edges.end();){
+        if(i->get()->weight == w && i->get()->dst.lock().get()->val == dst && i->get()->src.lock().get()->val == src){
+            edges.erase(i++);
+        } else{
+            ++i;
+        }
+    }
+}
+
+template <typename N, typename E>
+void Graph<N, E>::clear() noexcept {
+    edges.clear();
+    nodes.clear();
+}
+
+template <typename N, typename E>
+bool Graph<N, E>::isNode(const N &val) const {
+    const auto& ret =  is_in_nodes(val);
+    return ret.get() != nullptr;
+}
+
+template <typename N, typename E>
+bool Graph<N, E>::isConnected(const N &src, const N &dst) const {
+    const auto& src_node = is_in_nodes(src);
+    if(src_node.get() == nullptr){
+        throw std::runtime_error("is Connected: source node does not exist.");
+    }
+
+    const auto& dst_node = is_in_nodes(dst);
+    if(dst_node.get() == nullptr){
+        throw std::runtime_error("is Connected: destination does not exist.");
+    }
+
+    return src_node.get()->find_node(dst);
+}
+
+template <typename N, typename E>
+void Graph<N, E>::printNodes() const {
+    using Node_print = std::pair<unsigned long, N>;
+    struct compare{
+        bool operator()(const Node_print& a, const Node_print& b){
+            if(a.first == b.first){
+                return a.second < b.second;
+            }else{
+                return a.first < b.first;
+            }
+        }
+    };
+    std::set<Node_print, compare> orderd_nodes;
+    for(const auto& i:nodes){
+        orderd_nodes.insert(std::make_pair(i.get()->len(), i.get()->val));
+    }
+    for(const auto& i: orderd_nodes){
+        std::cout << i.second << std::endl;
+    }
+}
+
+template <typename N, typename E>
+void Graph<N, E>::printEdges(const N &val) const {
+    const auto& node =  is_in_nodes(val);
+    if(node.get() == nullptr){
+        throw std::runtime_error("printEdge: node does not exist.");
+    }
+
+    using Edge_print = std::pair<E, N>;
+    struct compare{
+        bool operator()(const Edge_print & a, const Edge_print & b) {
+            if(a.first != b.first){
+                return a.first < b.first;
+            } else{
+                return a.second < b.second;
+            }
+        }
+    };
+
+    std::set<Edge_print, compare> print_edge;
+    std::cout << "Edges attached to Node " << node.get()->val << std::endl;
+    for(const auto& i: node.get()->out_edges){
+        print_edge.insert(std::make_pair(i.lock().get()->weight, i.lock().get()->dst.lock().get()->val));
+    }
+
+    for(const auto& i: print_edge){
+        std::cout << i.second << " " << i.first << std::endl;
+    }
+
+}
+
+template <typename N, typename E>
+void Graph<N, E>::begin() {
+    iter = nodes.begin();
+}
+
+template <typename N, typename E>
+bool Graph<N, E>::end() {
+    return iter == nodes.end();
+}
+
+template <typename N, typename E>
+void Graph<N, E>::next() {
+    ++iter;
+}
+
+template <typename N, typename E>
+const N &Graph<N, E>::value() const {
+    return iter->get()->val;
+}
 
 
 
