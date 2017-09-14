@@ -206,7 +206,7 @@ namespace {
         if (isSuccessful) {
             //std::cerr << "Success\n";
             if (!slowGraph.edges.insert(std::make_tuple(std::move(from), std::move(to), std::move(value))).second)
-                throw std::runtime_error("Unexpected success in inserting existing edge into graph");
+               throw std::runtime_error("Unexpected success in inserting existing edge into graph");
         } else {
             //std::cerr << "Failure\n";
             if (slowGraph.edges.count(std::make_tuple(std::move(from), std::move(to), std::move(value))) == 0)
@@ -401,8 +401,16 @@ namespace {
     template <typename NodeLabel, typename EdgeValue>
     void _checkEquality(const gdwg::Graph<NodeLabel, EdgeValue>& gdwgGraph, const SlowGraph<NodeLabel, EdgeValue>& slowGraph) {
         auto nodes = _extractGdwgNodes(gdwgGraph);
-        if (nodes.size() != slowGraph.nodes.size())
-            throw std::runtime_error("GDWG node count mismatch");
+        if (nodes.size() != slowGraph.nodes.size()){
+        	std::cout << nodes.size() << " vs " << slowGraph.nodes.size() << std::endl;    
+	gdwgGraph.printNodes();
+	std::cout << "---\n ";
+	for(const auto i:nodes){
+		std::cout << i <<std::endl;
+	}
+	throw std::runtime_error("GDWG node count mismatch");
+	}
+	
         for (const auto& node : nodes)
             if (slowGraph.nodes.count(node) == 0)
                 throw std::runtime_error("GDWG contains unknown node");
@@ -590,7 +598,7 @@ namespace {
 }
 
 void* malloc(size_t size) noexcept {
-    constexpr const size_t FAILURE_PERCENTAGE = 5; // Set to non-zero for strong exception guarantee testing
+  //  constexpr const size_t FAILURE_PERCENTAGE = 0; // Set to non-zero for strong exception guarantee testing
 
     static decltype(malloc)* _malloc;
     static std::uniform_int_distribution<size_t> dist(0, 99);
@@ -599,10 +607,10 @@ void* malloc(size_t size) noexcept {
         _malloc = reinterpret_cast<decltype(malloc)*>(dlsym(RTLD_NEXT, "malloc"));
         assert(_malloc);
     }
-
+/*
     if (_enableFailingMalloc && dist(_rng) < FAILURE_PERCENTAGE)
         return nullptr;
-
+*/
     void* result = _malloc(size);
     if (!result && _inFuzzer) {
         std::cerr << "Actual allocation failure while in fuzzer - can't handle this!";

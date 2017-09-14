@@ -1,6 +1,6 @@
 CXX = g++
-CXXFLAGS = -std=c++14 -Wall -Wextra -Werror -O3
-LDFLAGS = -ldl -O3
+CXXFLAGS = -std=c++14 -Wall -Wextra -Werror -O0
+LDFLAGS = -ldl -O0
 
 CXXFILES := $(wildcard *.cpp)
 OBJFILES := $(CXXFILES:.cpp=.o)
@@ -12,6 +12,6 @@ clean:
 	rm -f GraphTester *.o
 
 GraphTester: $(OBJFILES)
-	$(CXX) -o $@ $+ $(LDFLAGS)
+	$(CXX) -g -o $@ $+ $(LDFLAGS)
 %.o: %.cpp
-	$(CXX) -c -o $@ $< $(CXXFLAGS)
+	$(CXX) -c -g -o $@ $< $(CXXFLAGS)
