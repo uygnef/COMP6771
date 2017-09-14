@@ -53,11 +53,13 @@ namespace gdwg {
             }
 
             unsigned long len(){
-                for(auto i = out_edges.begin(); i != out_edges.end();){
+
+                for(auto i = out_edges.cbegin(); i != out_edges.cend();){
                     if(i->expired()){
                         out_edges.erase(i);
+                    }else{
+                        ++i;
                     }
-                    ++i;
                 }
                 return out_edges.size();
             }
@@ -121,7 +123,7 @@ namespace gdwg {
             return {};
         }
 
-        Node_ptr is_in_nodes(N name) const{
+        std::shared_ptr<Node> is_in_nodes(N name) const{
             for(const auto& i:nodes){
                 if(i.get()->val == name){
                     return i;
@@ -132,6 +134,8 @@ namespace gdwg {
 
         std::set<std::shared_ptr<Node>, NodeCompare> nodes;
         std::set<std::shared_ptr<Edge>, EdgeCompare> edges;
+
+        mutable typename std::set<std::shared_ptr<Node>, NodeCompare>::iterator iter = nodes.begin();
 
 
     public:
@@ -188,6 +192,16 @@ namespace gdwg {
         bool isConnected(const N& src, const N& dst) const;
 
         void printNodes() const;
+
+        void printEdges(const N& val) const;
+
+        void begin();
+
+        bool end();
+
+        void next();
+
+        const N& value() const;
 
 
     };
@@ -279,7 +293,6 @@ namespace gdwg {
         }
 
         for(const auto &in_edge: old_node->get()->in_edges) {
-            std::cout << "--- edge is: "<<in_edge.lock().get()->src.lock().get()->val <<"  "<<in_edge.lock().get()->dst.lock().get()->val << " "<<in_edge.lock().get()->weight<<std::endl;
             const auto& result_pointer = is_in_edges(in_edge.lock().get()->src.lock().get()->val, new_node->get()->val, in_edge.lock().get()->weight).lock();
             if ( result_pointer != nullptr) {
                 edges.erase(in_edge.lock());
@@ -305,7 +318,7 @@ namespace gdwg {
     void Graph<N, E>::deleteNode(const N &node_name) noexcept {
         const auto& node = is_in_nodes(node_name);
 
-        if(node.lock() == nullptr){
+        if(node.get() == nullptr){
             return;
         }
 
@@ -313,18 +326,18 @@ namespace gdwg {
          * disable all in_edgs(node owns out edgs)
          */
 
-        for(const auto& i: node.lock().get()->out_edges){
+        for(const auto& i: node.get()->out_edges){
             if(!i.expired()){
                 edges.erase(i.lock());
             }
         }
 
-        for(const auto& i: node.lock().get()->in_edges){
+        for(const auto& i: node.get()->in_edges){
             if(!i.expired()){
                 edges.erase(i.lock());
             }
         }
-        nodes.erase(node.lock());
+        nodes.erase(node);
     }
 
 
@@ -348,34 +361,93 @@ namespace gdwg {
     template <typename N, typename E>
     bool Graph<N, E>::isNode(const N &val) const {
         const auto& ret =  is_in_nodes(val);
-        if(ret.lock() == nullptr){
-            return false;
-        }
-        return true;
+        return ret.get() != nullptr;
     }
 
     template <typename N, typename E>
     bool Graph<N, E>::isConnected(const N &src, const N &dst) const {
         const auto& src_node = is_in_nodes(src);
-        if(src_node.lock() == nullptr){
+        if(src_node.get() == nullptr){
             throw std::runtime_error("is Connected: source node does not exist.");
         }
 
         const auto& dst_node = is_in_nodes(dst);
-        if(dst_node.lock() == nullptr){
+        if(dst_node.get() == nullptr){
             throw std::runtime_error("is Connected: destination does not exist.");
         }
 
-        return src_node.lock().get()->find_node(dst);
+        return src_node.get()->find_node(dst);
     }
 
     template <typename N, typename E>
     void Graph<N, E>::printNodes() const {
-        std::multimap<E, N> cache;
-        for(auto& node: nodes ){
-            cache.insert(std::make_pair(node.get()->len(), node.get()->val));
+        using Node_print = std::pair<unsigned long, N>;
+        struct compare{
+            bool operator()(const Node_print& a, const Node_print& b){
+                if(a.first == b.first){
+                    return a.second < b.second;
+                }else{
+                    return a.first < b.first;
+                }
+            }
+        };
+        std::set<Node_print, compare> orderd_nodes;
+        for(const auto& i:nodes){
+            orderd_nodes.insert(std::make_pair(i.get()->len(), i.get()->val));
         }
-        
+        for(const auto& i: orderd_nodes){
+            std::cout << i.second << std::endl;
+        }
+    }
+
+    template <typename N, typename E>
+    void Graph<N, E>::printEdges(const N &val) const {
+        const auto& node =  is_in_nodes(val);
+        if(node.get() == nullptr){
+            throw std::runtime_error("printEdge: node does not exist.");
+        }
+
+        using Edge_print = std::pair<E, N>;
+        struct compare{
+            bool operator()(const Edge_print & a, const Edge_print & b) {
+                if(a.first != b.first){
+                    return a.first < b.first;
+                } else{
+                    return a.second < b.second;
+                }
+            }
+        };
+
+        std::set<Edge_print, compare> print_edge;
+        std::cout << "Edges attached to Node " << node.get()->val << std::endl;
+        for(const auto& i: node.get()->out_edges){
+            print_edge.insert(std::make_pair(i.lock().get()->weight, i.lock().get()->dst.lock().get()->val));
+        }
+
+        for(const auto& i: print_edge){
+            std::cout << i.second << " " << i.first << std::endl;
+        }
+
+    }
+
+    template <typename N, typename E>
+    void Graph<N, E>::begin() {
+        iter = nodes.begin();
+    }
+
+    template <typename N, typename E>
+    bool Graph<N, E>::end() {
+        return iter == nodes.end();
+    }
+
+    template <typename N, typename E>
+    void Graph<N, E>::next() {
+        ++iter;
+    }
+
+    template <typename N, typename E>
+    const N &Graph<N, E>::value() const {
+        return iter->get()->val;
     }
 
 

@@ -40,7 +40,12 @@ int main() {
     g.addEdge("fengyu", "23", 9);
     g.addEdge("fengyu", "fengyu", 2);
 
-    std::cout << "------------------\n";
+    g.printEdges("fengyu");
+
+    std::cout << "\ncall iterator:\n";
+    for (g.begin(); !g.end(); g.next())
+        std::cout << g.value() << std::endl;
+
     g.mergeReplace("45", "23");
     g.print_node();
 
@@ -52,11 +57,12 @@ int main() {
     g.deleteEdge("23", "23", 5);
     g.print_node();
     g.print_edge();
-
+/*
     std::cout << "clear:\n";
     g.print_node();
     g.print_edge();
-
+*/
+    g.printNodes();
     g.addEdge("fengyu", "fengyu", 3);
     std::cout<<"-------------delete node: \n";
     g.deleteNode("23");
@@ -77,5 +83,11 @@ int main() {
     std::cout << g.isConnected("fengyu", "fengyu");
     g.addNode("23");
     std::cout << g.isConnected("23", "fengyu");
+    std::cout << "Print Node: \n";
+    g.printNodes();
+    g.printEdges("fengyu");
+
+    for (g.begin(); !g.end(); g.next())
+        std::cout << g.value() << std::endl;
     return 0;
 }
