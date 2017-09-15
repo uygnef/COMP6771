@@ -172,13 +172,13 @@ namespace {
         std::uniform_int_distribution<Unhashable::BaseValueType>& valueDist
     ) {
         NodeLabel label(valueDist(_rng));
-        //std::cerr << "Creating " << *label.value << "...";
+        std::cerr << "Creating " << *label.value << "...";
         if (_withFailingMalloc([&]{return gdwgGraph.addNode(label);})) {
-            //std::cerr << "Success\n";
+            std::cerr << "Success\n";
             if (!slowGraph.nodes.insert(std::move(label)).second)
                 throw std::runtime_error("Tried to insert existing node into graph");
         } else {
-            //std::cerr << "Failure\n";
+            std::cerr << "Failure\n";
         }
     }
 
@@ -403,7 +403,10 @@ namespace {
         auto nodes = _extractGdwgNodes(gdwgGraph);
         if (nodes.size() != slowGraph.nodes.size()){
         	std::cout << nodes.size() << " vs " << slowGraph.nodes.size() << std::endl;    
-	gdwgGraph.printNodes();
+	std::cout << "--------pritn node\n";
+	for(auto i: slowGraph.nodes){
+		std::cout << i << std::endl;
+	}
 	std::cout << "---\n ";
 	for(const auto i:nodes){
 		std::cout << i <<std::endl;

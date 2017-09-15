@@ -287,27 +287,25 @@ namespace gdwg {
          * TODO: avoid create new object, just found value in nodes set..
          *
          */
-        auto src_node = std::make_shared<Node>(Node(src));
-        auto src_index = nodes.find(src_node);
-        if(src_index == nodes.end()){
+        auto src_node = is_in_nodes(src);
+        if(src_node == nullptr){
             throw std::runtime_error("add Edge: source node does not exist.");
         }
-        auto dst_node = std::make_shared<Node>(Node(dst));
-        auto dst_index = nodes.find(dst_node);
-        if(dst_index == nodes.end()){
+        auto dst_node = is_in_nodes(dst);
+        if(dst_node == nullptr){
             throw std::runtime_error("add Edge: destination node does not exist.");
         }
 
         //check if the new edge is already in the edges sets.
-        auto new_edge = std::make_shared<Edge>(Edge{*src_index ,*dst_index, w});
+        auto new_edge = std::make_shared<Edge>(Edge{src_node ,dst_node, w});
         bool is_unique = edges.insert(new_edge).second;
         if(!is_unique){
             return false;
         }
 
         auto a = Edge_ptr(new_edge);
-        src_index->get()->out_edges.push_back(a);
-        dst_index->get()->in_edges.push_back(a);
+        src_node.get()->out_edges.push_back(a);
+        src_node.get()->in_edges.push_back(a);
         return true;
     }
 
@@ -315,15 +313,13 @@ namespace gdwg {
 
     template <typename N, typename E>
     bool Graph<N, E>::replace(const N& oldData, const N& newData){
-        const auto& old_Node = std::make_shared<Node>(Node(oldData));
-        const auto& target_node = nodes.find(old_Node);
-        if(target_node == nodes.end()){
+        const auto& old_Node = is_in_nodes(oldData);
+        if(old_Node == nullptr){
             throw std::runtime_error("replace: old data node does not exist.");
         }
 
-        const auto& new_Node = std::make_shared<Node>(Node(newData));
-        const auto& new_node = nodes.find(new_Node);
-        if(new_node != nodes.end()){
+        const auto& new_node = is_in_nodes(newData);
+        if(new_node != nullptr){
             return false;
         }
 
@@ -334,9 +330,9 @@ namespace gdwg {
          * put new pointer into nodes set.
          */
 
-        std::shared_ptr<Node> new_pointer = *target_node;
+        std::shared_ptr<Node> new_pointer = old_Node;
         new_pointer.get()->val = newData;
-        nodes.erase(target_node);
+        nodes.erase(old_Node);
         nodes.insert(new_pointer);
         return true;
     }
@@ -348,35 +344,47 @@ namespace gdwg {
  */
     template <typename N, typename E>
     void Graph<N, E>::mergeReplace(const N &oldData, const N &newData) {
-        const auto& _old_Node = std::make_shared<Node>(Node(oldData));
-        const auto& old_node = nodes.find(_old_Node);
-        if(old_node == nodes.end()){
+        const auto& old_node = is_in_nodes(oldData);
+        if(old_node == nullptr){
             throw std::runtime_error("mergeReplace: old data node does not exist.");
         }
 
-        const auto& _new_node = std::make_shared<Node>(Node(newData));
-        const auto& new_node = nodes.find(_new_node);
-        if(new_node == nodes.end()){
+        const auto& new_node = is_in_nodes(newData);
+        if(new_node == nullptr){
             throw std::runtime_error("mergeReplace: new data node does not exist.");
         }
 
-        for(const auto &in_edge: old_node->get()->in_edges) {
-            const auto& result_pointer = is_in_edges(in_edge.lock().get()->src.lock().get()->val, new_node->get()->val, in_edge.lock().get()->weight).lock();
+        for(const auto &in_edge: old_node.get()->in_edges) {
+            if(in_edge.expired()){
+                continue;
+            }
+            const auto& result_pointer = is_in_edges(in_edge.lock().get()->src.lock().get()->val, new_node.get()->val, in_edge.lock().get()->weight).lock();
             if ( result_pointer != nullptr) {
                 edges.erase(in_edge.lock());
             } else {
-                in_edge.lock().get()->dst = *new_node;
-                new_node->get()->in_edges.push_back(in_edge);
+                auto in_edge_tmp = in_edge.lock();
+                edges.erase(in_edge.lock());
+
+                in_edge_tmp.get()->dst = new_node;
+                edges.insert(in_edge_tmp);
+                new_node.get()->in_edges.push_back(in_edge);
             }
         }
 
-        for(const auto &out_edge: old_node->get()->out_edges) {
-            const auto& result_pointer = is_in_edges(new_node->get()->val, out_edge.lock().get()->dst.lock().get()->val, out_edge.lock().get()->weight).lock();
+        for(const auto &out_edge: old_node.get()->out_edges) {
+            if(out_edge.expired()){
+                continue;
+            }
+            const auto& result_pointer = is_in_edges(new_node.get()->val, out_edge.lock().get()->dst.lock().get()->val, out_edge.lock().get()->weight).lock();
             if (result_pointer != nullptr) {
                 edges.erase(out_edge.lock());
             } else {
-                out_edge.lock().get()->src = *new_node;
-                new_node->get()->out_edges.push_back(out_edge);
+                auto out_edge_tmp = out_edge.lock();
+                edges.erase(out_edge.lock());
+
+                out_edge_tmp.get()->src = new_node;
+                edges.insert(out_edge_tmp);
+                new_node.get()->out_edges.push_back(out_edge);
             }
         }
         nodes.erase(old_node);
@@ -389,10 +397,6 @@ namespace gdwg {
         if(node.get() == nullptr){
             return;
         }
-
-        /*
-         * disable all in_edgs(node owns out edgs)
-         */
 
         for(const auto& i: node.get()->out_edges){
             if(!i.expired()){
@@ -414,10 +418,10 @@ namespace gdwg {
         for(auto i=edges.begin(); i != edges.end();){
             if(is_equal3( i->get()->weight , w) && is_equal( i->get()->dst.lock().get()->val, dst)
                && is_equal(i->get()->src.lock().get()->val, src)){
-                edges.erase(i++);
-            } else{
-                ++i;
+                edges.erase(i);
+                return;
             }
+            ++i;
         }
     }
 
@@ -491,7 +495,9 @@ namespace gdwg {
         std::set<Edge_print, compare> print_edge;
         std::cout << "Edges attached to Node " << node.get()->val << std::endl;
         for(const auto& i: node.get()->out_edges){
-            print_edge.insert(std::make_pair(i.lock().get()->weight, i.lock().get()->dst.lock().get()->val));
+            if(!i.expired()) {
+                print_edge.insert(std::make_pair(i.lock().get()->weight, i.lock().get()->dst.lock().get()->val));
+            }
         }
 
         if(print_edge.size() == 0){
