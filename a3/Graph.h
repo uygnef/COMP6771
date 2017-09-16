@@ -305,7 +305,7 @@ namespace gdwg {
 
         auto a = Edge_ptr(new_edge);
         src_node.get()->out_edges.push_back(a);
-        src_node.get()->in_edges.push_back(a);
+        dst_node.get()->in_edges.push_back(a);
         return true;
     }
 
@@ -362,12 +362,13 @@ namespace gdwg {
             if ( result_pointer != nullptr) {
                 edges.erase(in_edge.lock());
             } else {
+
                 auto in_edge_tmp = in_edge.lock();
                 edges.erase(in_edge.lock());
 
                 in_edge_tmp.get()->dst = new_node;
                 edges.insert(in_edge_tmp);
-                new_node.get()->in_edges.push_back(in_edge);
+                new_node.get()->in_edges.push_back(Edge_ptr(in_edge_tmp));
             }
         }
 
@@ -384,7 +385,7 @@ namespace gdwg {
 
                 out_edge_tmp.get()->src = new_node;
                 edges.insert(out_edge_tmp);
-                new_node.get()->out_edges.push_back(out_edge);
+                new_node.get()->out_edges.push_back(Edge_ptr(out_edge_tmp));
             }
         }
         nodes.erase(old_node);
@@ -492,11 +493,15 @@ namespace gdwg {
             }
         };
 
-        std::set<Edge_print, compare> print_edge;
+        std::set<Edge_print, compare> print_edge{};
         std::cout << "Edges attached to Node " << node.get()->val << std::endl;
         for(const auto& i: node.get()->out_edges){
             if(!i.expired()) {
-                print_edge.insert(std::make_pair(i.lock().get()->weight, i.lock().get()->dst.lock().get()->val));
+                auto first = i.lock().get()->weight;
+                auto ma = i.lock().get()->dst;
+                auto second = ma.lock().get()->val;
+                auto temp = std::make_pair(first, second);
+                print_edge.insert(temp);
             }
         }
 

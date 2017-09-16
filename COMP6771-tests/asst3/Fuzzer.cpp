@@ -193,10 +193,10 @@ namespace {
         EdgeValue value(valueDist(_rng));
         bool isSuccessful = false;
         try {
-            //std::cerr << "Inserting (" << *from.value << ", " << *to.value << ", " << *value.value << ")...";
+            std::cerr << "Inserting (" << *from.value << ", " << *to.value << ", " << *value.value << ")...";
             isSuccessful = _withFailingMalloc([&]{return gdwgGraph.addEdge(from, to, value);});
         } catch (const std::runtime_error& e) {
-            //std::cerr << "Failure\n";
+            std::cerr << "Failure\n";
             if (slowGraph.nodes.count(from) > 0 && slowGraph.nodes.count(to) > 0)
                 std::throw_with_nested(std::runtime_error("Got unexpected exception from gdwg::Graph::addEdge()"));
             else
@@ -204,11 +204,11 @@ namespace {
         }
 
         if (isSuccessful) {
-            //std::cerr << "Success\n";
+            std::cerr << "Success\n";
             if (!slowGraph.edges.insert(std::make_tuple(std::move(from), std::move(to), std::move(value))).second)
                throw std::runtime_error("Unexpected success in inserting existing edge into graph");
         } else {
-            //std::cerr << "Failure\n";
+            std::cerr << "Failure\n";
             if (slowGraph.edges.count(std::make_tuple(std::move(from), std::move(to), std::move(value))) == 0)
                 throw std::runtime_error("Unexpected failure to insert non-existent edge into graph");
         }
@@ -273,10 +273,10 @@ namespace {
         NodeLabel newLabel(valueDist(_rng));
         bool isSuccessful = false;
         try {
-            //std::cerr << "Replacing " << *oldLabel.value << " with " << *newLabel.value << "...";
+            std::cerr << "Replacing " << *oldLabel.value << " with " << *newLabel.value << "...";
             isSuccessful = _withFailingMalloc([&]{return gdwgGraph.replace(oldLabel, newLabel);});
         } catch (const std::runtime_error& e) {
-            //std::cerr << "Failure\n";
+            std::cerr << "Failure\n";
             if (slowGraph.nodes.count(oldLabel) > 0)
                 std::throw_with_nested(std::runtime_error("Got unexpected exception from gdwg::Graph::replace()"));
             else
@@ -284,7 +284,7 @@ namespace {
         }
 
         if (isSuccessful) {
-            //std::cerr << "Success\n";
+            std::cerr << "Success\n";
             if (!slowGraph.nodes.erase(oldLabel))
                 throw std::runtime_error(std::runtime_error("Unexpected success in replacing from a non-existent node"));
             if (!slowGraph.nodes.insert(newLabel).second)
@@ -306,7 +306,7 @@ namespace {
                 }
             }
         } else {
-            //std::cerr << "Failure\n";
+            std::cerr << "Failure\n";
             if (slowGraph.nodes.count(newLabel) == 0)
                 throw std::runtime_error(std::runtime_error("Unexpected failure in replacing to a non-existent node"));
         }
@@ -321,17 +321,17 @@ namespace {
         NodeLabel oldLabel(valueDist(_rng));
         NodeLabel newLabel(valueDist(_rng));
         try {
-            //std::cerr << "Merging " << *oldLabel.value << " with " << *newLabel.value << "...";
+            std::cerr << "Merging " << *oldLabel.value << " with " << *newLabel.value << "...";
             _withFailingMalloc([&]{return gdwgGraph.mergeReplace(oldLabel, newLabel);});
         } catch (const std::runtime_error& e) {
-            //std::cerr << "Failure\n";
+            std::cerr << "Failure\n";
             if (slowGraph.nodes.count(oldLabel) > 0 && slowGraph.nodes.count(newLabel) > 0)
                 std::throw_with_nested(std::runtime_error("Got unexpected exception from gdwg::Graph::mergeReplace()"));
             else
                 return;
         }
 
-        //std::cerr << "Success\n";
+        std::cerr << "Success\n";
         if (*oldLabel.value == *newLabel.value)
             return;
         if (!slowGraph.nodes.erase(oldLabel))
@@ -363,7 +363,7 @@ namespace {
         std::uniform_int_distribution<Unhashable::BaseValueType>& valueDist
     ) {
         NodeLabel label(valueDist(_rng));
-        //std::cerr << "Deleting " << *label.value << "\n";
+        std::cerr << "Deleting " << *label.value << "\n";
         _withFailingMalloc([&]{gdwgGraph.deleteNode(label);});
         if (slowGraph.nodes.erase(label)) {
             for (auto edge = slowGraph.edges.begin(); edge != slowGraph.edges.end(); )
@@ -623,7 +623,7 @@ void* malloc(size_t size) noexcept {
 }
 
 void fuzzer() {
-    constexpr const size_t LOOPS = 100;
+    constexpr const size_t LOOPS = 10;
 
     auto seed = std::random_device()();
     std::cerr << "Seeding fuzzer with " << seed << "\n";
