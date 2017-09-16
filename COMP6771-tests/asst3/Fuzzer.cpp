@@ -205,8 +205,10 @@ namespace {
 
         if (isSuccessful) {
             std::cerr << "Success\n";
-            if (!slowGraph.edges.insert(std::make_tuple(std::move(from), std::move(to), std::move(value))).second)
-               throw std::runtime_error("Unexpected success in inserting existing edge into graph");
+            if (!slowGraph.edges.insert(std::make_tuple(std::move(from), std::move(to), std::move(value))).second){
+               	 gdwgGraph.printNodes();
+		 throw std::runtime_error("Unexpected success in inserting existing edge into graph");
+	}
         } else {
             std::cerr << "Failure\n";
             if (slowGraph.edges.count(std::make_tuple(std::move(from), std::move(to), std::move(value))) == 0)
@@ -401,19 +403,11 @@ namespace {
     template <typename NodeLabel, typename EdgeValue>
     void _checkEquality(const gdwg::Graph<NodeLabel, EdgeValue>& gdwgGraph, const SlowGraph<NodeLabel, EdgeValue>& slowGraph) {
         auto nodes = _extractGdwgNodes(gdwgGraph);
+
+
         if (nodes.size() != slowGraph.nodes.size()){
-        	std::cout << nodes.size() << " vs " << slowGraph.nodes.size() << std::endl;    
-	std::cout << "--------pritn node\n";
-	for(auto i: slowGraph.nodes){
-		std::cout << i << std::endl;
+            throw std::runtime_error("GDWG node count mismatch");
 	}
-	std::cout << "---\n ";
-	for(const auto i:nodes){
-		std::cout << i <<std::endl;
-	}
-	throw std::runtime_error("GDWG node count mismatch");
-	}
-	
         for (const auto& node : nodes)
             if (slowGraph.nodes.count(node) == 0)
                 throw std::runtime_error("GDWG contains unknown node");
@@ -427,8 +421,21 @@ namespace {
                 if (slowGraph.edges.count(std::make_tuple(node, edge.first, edge.second)) == 0)
                     throw std::runtime_error("GDWG contains unknown edge");
         }
-        if (edgeCount != slowGraph.edges.size())
+        if (edgeCount != slowGraph.edges.size()){
+	    std::cout << " right vs mine " << edgeCount << " vs " << slowGraph.edges.size() << std::endl;
+	   
+	     std::cout << " right edge should be: \n" ;
+	    for (auto i: slowGraph.edges){
+		std::cout << std::get<0>(i) << " " << std::get<1>(i) << " " << std::get<2>(i) << std::endl;	
+	    }
+
+	    std::cout << "mine edge is: \n";
+	    for(auto i: gdwgGraph.nodes){
+	        std::cout << i.get()->val << std::endl;   
+		gdwgGraph.printEdges(i.get()->val);
+           }
             throw std::runtime_error("GDWG edge count mismatch");
+	}
     }
 
     template <typename NodeLabel, typename EdgeValue>
@@ -601,7 +608,7 @@ namespace {
 }
 
 void* malloc(size_t size) noexcept {
-  //  constexpr const size_t FAILURE_PERCENTAGE = 0; // Set to non-zero for strong exception guarantee testing
+  //  constexpr const size_t FAILURE_PERCENTAGE = 5; // Set to non-zero for strong exception guarantee testing
 
     static decltype(malloc)* _malloc;
     static std::uniform_int_distribution<size_t> dist(0, 99);
@@ -623,7 +630,7 @@ void* malloc(size_t size) noexcept {
 }
 
 void fuzzer() {
-    constexpr const size_t LOOPS = 10;
+    constexpr const size_t LOOPS = 100;
 
     auto seed = std::random_device()();
     std::cerr << "Seeding fuzzer with " << seed << "\n";

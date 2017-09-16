@@ -288,7 +288,6 @@ void test8() {
         assertNodesEq(*gHeap, {"a"s, "d"s, "c"s, "b"s});
         assertEdgesEq(*gHeap, "b"s, {{"a"s, 3}, {"d"s, 4}, {"a"s, 5}});
 
-	std::cout << "moving test 2\n";
         auto gHeapCopy = std::move(*gHeap);
         // We shouldn't use a moved-from object, in general.
         // However, here, for testing purposes, we assumed
@@ -296,7 +295,6 @@ void test8() {
         assertNodesEq(*gHeap, {});
         delete gHeap;
 
-	std::cout << "moving test 3\n";
         assertNodesEq(gHeapCopy, {"a"s, "d"s, "c"s, "b"s});
         assertEdgesEq(gHeapCopy, "b"s, {{"a"s, 3}, {"d"s, 4}, {"a"s, 5}});
     }
