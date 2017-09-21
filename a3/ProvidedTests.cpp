@@ -9,17 +9,6 @@ using namespace util;
 using namespace std::string_literals;
 using namespace gdwg;
 
-#include "ProvidedTests.h"
-#include <cassert>
-#include <unordered_set>
-#include <vector>
-#include "Graph.h"
-#include "util.h"
-
-using namespace util;
-using namespace std::string_literals;
-using namespace gdwg;
-
 void test1() {
     Graph<int, int> g;
     // add some nodes to each graph.
@@ -299,7 +288,7 @@ void test8() {
         assertNodesEq(*gHeap, {"a"s, "d"s, "c"s, "b"s});
         assertEdgesEq(*gHeap, "b"s, {{"a"s, 3}, {"d"s, 4}, {"a"s, 5}});
 
-        std::cout << "moving test 2\n";
+	std::cout << "moving test 2\n";
         auto gHeapCopy = std::move(*gHeap);
         // We shouldn't use a moved-from object, in general.
         // However, here, for testing purposes, we assumed
@@ -307,7 +296,7 @@ void test8() {
         assertNodesEq(*gHeap, {});
         delete gHeap;
 
-        std::cout << "moving test 3\n";
+	std::cout << "moving test 3\n";
         assertNodesEq(gHeapCopy, {"a"s, "d"s, "c"s, "b"s});
         assertEdgesEq(gHeapCopy, "b"s, {{"a"s, 3}, {"d"s, 4}, {"a"s, 5}});
     }
@@ -477,14 +466,14 @@ void test13() {
     for (g.begin(); !g.end(); g.next())
         assert(nodes.insert(g.value()).second);
     for (unsigned int i = 1; i <= 4; ++i)
-        assert(nodes.count(i) > 0);
+       assert(nodes.count(i) > 0);
 
     const auto& cg = g;
     nodes.clear();
     for (cg.begin(); !cg.end(); cg.next())
         assert(nodes.insert(cg.value()).second);
     for (unsigned int i = 1; i <= 4; ++i)
-        assert(nodes.count(i) > 0);
+       assert(nodes.count(i) > 0);
 }
 
 const std::vector<std::function<void()>> tests = {test1, test2, test3, test4, test5, test6, test7, test8, test9, test10, test11, test12, test13};
@@ -494,10 +483,4 @@ void providedTests() {
         std::cout << "Running test " << i + 1 << "..." << std::endl;
         tests[i]();
     }
-}
-
-
-int main(){
-   // providedTests();
-    providedTests();
 }
