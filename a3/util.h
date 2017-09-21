@@ -6,6 +6,7 @@
 #include <sstream>
 #include <iterator>
 #include <iostream>
+#include <cassert>
 #include <map>
 #include <functional>
 #include <algorithm>
