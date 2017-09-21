@@ -231,10 +231,7 @@ namespace gdwg {
 
     };
 
-//
-// Created by yu on 10/09/17.
-//
-#include "Graph.tem"
+    #include "Graph.tem"
 
 }
 

@@ -50,13 +50,13 @@ bool Graph<N, E>::replace(const N& oldData, const N& newData){
      * cache all egdes which contain old node...
      * erase and re-insert to set them into right position...(Vector is a better container for nodes and edges...)
      */
+
     for(auto i = edges.begin(); i != edges.end();){
         if(is_equal(i->get()->src.lock().get()->val, oldData) || is_equal(i->get()->dst.lock().get()->val, oldData)){
             update_cache.push_back(*i);
             edges.erase(i);
         }
         ++i;
-
     }
 
     /*
@@ -100,7 +100,9 @@ void Graph<N, E>::mergeReplace(const N &oldData, const N &newData) {
         throw std::runtime_error("mergeReplace: new data node does not exist.");
     }
 
-
+    /*
+     * change the dst node of in edge and the src node of out edge to new node.
+     */
     for(const auto &in_edge: old_node.get()->in_edges) {
         if(in_edge.expired()){
             continue;
