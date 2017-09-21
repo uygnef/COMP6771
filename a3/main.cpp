@@ -9,17 +9,6 @@ using namespace util;
 using namespace std::string_literals;
 using namespace gdwg;
 
-#include "ProvidedTests.h"
-#include <cassert>
-#include <unordered_set>
-#include <vector>
-#include "Graph.h"
-#include "util.h"
-
-using namespace util;
-using namespace std::string_literals;
-using namespace gdwg;
-
 void test1() {
     Graph<int, int> g;
     // add some nodes to each graph.
