@@ -488,4 +488,5 @@ void providedTests() {
 int main(){
    // providedTests();
     providedTests();
+    std::cout << "successful\n";
 }
