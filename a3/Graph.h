@@ -4,7 +4,6 @@
 
 #ifndef A3_GRAPH_H
 #define A3_GRAPH_H
-#pragma once
 
 #include <algorithm>
 #include <fstream>
