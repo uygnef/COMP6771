@@ -3,6 +3,9 @@
 //
 
 
+#include <vector>
+#include <bits/shared_ptr.h>
+
 template <typename N, typename E>
 bool Graph<N, E>::addNode(const N& input_node) {
     return nodes.insert(std::make_shared<Node>(Node{input_node})).second;
@@ -54,11 +57,26 @@ bool Graph<N, E>::replace(const N& oldData, const N& newData){
      * All pointers keep the same.
      * delete and insert is to keep the correct order in nodes set.
      */
+    std::vector<std::shared_ptr<Edge>> update_cache;
+
+    for(const auto& edge = edges.begin(); edge != edges.end();){
+        if(edge->get()->src->lock()->get() == old_Node || edge->get()->dst->lock()->get() == old_Node){
+            update_cache.push_back(edge);
+            edge = edge.erase(edge);
+        } else{
+            edge++ ;
+        }
+    }
 
     std::shared_ptr<Node> new_pointer = old_Node;
+
     nodes.erase(old_Node);
     new_pointer.get()->val = newData;
     nodes.insert(new_pointer);
+
+    for(const auto& i: update_cache){
+        edges.insert(i);
+    }
     return true;
 }
 
@@ -151,7 +169,7 @@ void Graph<N, E>::deleteNode(const N &node_name) noexcept {
 
 template <typename N, typename E>
 void Graph<N, E>::deleteEdge(const N &src, const N &dst, const E &w)noexcept {
-    for(auto i=edges.begin(); i != edges.end();){
+    for(const auto& i=edges.begin(); i != edges.end();){
         if(is_equal3( i->get()->weight , w) && is_equal( i->get()->dst.lock().get()->val, dst)
            && is_equal(i->get()->src.lock().get()->val, src)){
             edges.erase(i);
@@ -165,7 +183,7 @@ template <typename N, typename E>
 void Graph<N, E>::clear() noexcept {
     edges.clear();
     nodes.clear();
-    // iter = nodes.begin();
+    iter = nodes.begin();
 }
 
 template <typename N, typename E>

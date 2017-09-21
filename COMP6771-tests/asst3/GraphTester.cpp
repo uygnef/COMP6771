@@ -5,7 +5,7 @@
 
 int main() {
     std::cout << "Starting test suite.\n";
-
+    providedTests();
     fuzzer();
 
     return 0;

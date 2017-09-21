@@ -25,7 +25,9 @@ void derek_tests() {
 void assertEqualsSimple(const evec::EuclideanVector& myvec, std::vector<double> values) {
    assert(myvec.getNumDimensions() == values.size());
    for (auto i = 0U; i < values.size(); i++) {
-      assert(myvec.get(i) == values.at(i));
+     if(myvec.get(i) != values.at(i)){
+	std::cout <<"resutl : "<< myvec << values.at(i)<<"\n";	
+     } 
+     assert(myvec.get(i) == values.at(i));
    }
 }
-

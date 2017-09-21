@@ -500,8 +500,8 @@ void providedTests() {
 int main(){
    // providedTests();
     gdwg::Graph<unsigned int,int> g;
-    g.addNode(1);
-    g.addNode(1);
+    std::cout << g.addNode(1);
+    std::cout << g.addNode(1);
     g.addEdge(1, 1, 1);
     g.addNode(2);
     g.replace(1, 3);
