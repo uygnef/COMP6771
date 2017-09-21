@@ -1,7 +1,6 @@
 #include "ProvidedTests.h"
 #include <cassert>
 #include <unordered_set>
-#include <vector>
 #include "Graph.h"
 #include "util.h"
 
