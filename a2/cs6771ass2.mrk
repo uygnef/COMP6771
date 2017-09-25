@@ -1,0 +1,629 @@
+!!section banner
+#######   ###    #####  #        #####   #####  #######
+#        #   #  #     # #    #  #     # #     # #
+#       # #   # #     # #    #  #     #       # #
+ #####  #  #  #  ###### #######  ######  #####   #####
+      # #   # #       #      #        #       #       #
+#     #  #   #  #     #      #  #     # #     # #     #
+ #####    ###    #####       #   #####   #####   #####
+
+5094935 Feng, Yu                                8543   COMPCS
+
+Submissions:-
+
+S 0     Thu Aug 24 20:20:42 2017        5094935 mon17a ass2 -12:-3
+
+Thu Sep 14 12:50:29 2017                ## marimba.orchestra.cse.unsw.EDU.AU ##
+!!section listing
+-rw------- z5094935/z5094935 7424 2017-08-24 20:20 EuclideanVector.cpp
+-rw------- z5094935/z5094935 4176 2017-08-24 20:20 EuclideanVector.h
+dos2unix: converting file EuclideanVector.h to Unix format ...
+
+===============================================================================
+-rw------- 1 cs6771 cs6771 4176 Sep 14 12:50 EuclideanVector.h
+===============================================================================
+
+     1  //
+     2  // Created by yu on 16/08/17.
+     3  //
+     4
+     5  #ifndef A2_EUCLIDEANVECTOR_H
+     6  #define A2_EUCLIDEANVECTOR_H
+     7  #pragma once
+     8
+     9  #include <cmath>
+    10  #include <memory>
+    11  #include <cstring>
+    12  #include <cassert>
+    13  #include <vector>
+    14  #include <list>
+    15  #include <stdarg.h>
+    16  #include <iostream>
+    17
+    18  namespace evec {
+    19      class EuclideanVector {
+    20      public:
+    21          EuclideanVector(): dimension{1}{
+    22              magnitude = new double[1];
+    23  #ifdef DEBUG
+    24              std::cout <<"3 allocate" << magnitude<<"\n";
+    25  #endif
+    26              magnitude[0] = 0.0;
+    27              is_change = true;
+    28          }
+    29
+    30          EuclideanVector(double length): dimension{static_cast<unsigned>(length)},
+    31                                          magnitude{new double[dimension]}{
+    32  #ifdef DEBUG
+    33              ; std::cout <<"4 allocate" << magnitude<<"\n";
+    34  #endif
+    35              for(auto i=0U; i<dimension; ++i){
+    36                  magnitude[i] = 0.0;
+    37              }
+    38              is_change = true;
+    39          }
+    40
+    41          EuclideanVector(unsigned length, double mag) : dimension{length},
+    42                                                         magnitude{new double[length]} {
+    43  #ifdef DEBUG
+    44              std::cout <<"5 allocate" << magnitude<<"\n";
+    45  #endif
+    46              for (auto i = 0U; i < length; ++i) {
+    47                  magnitude[i] = mag;
+    48              }
+    49              is_change = true;
+    50          };
+    51
+    52          template<typename IT>
+    53          EuclideanVector(IT begin, IT end, typename std::enable_if<!std::is_arithmetic<IT>::value>::type* = 0) {
+    54              dimension = 0U;
+    55              for (auto i = begin; i != end; ++i) {
+    56                  dimension += 1;
+    57              }
+    58
+    59              magnitude = new double[dimension];
+    60  #ifdef DEBUG
+    61              std::cout <<"6 allocate" << magnitude<<"\n";
+    62  #endif
+    63              unsigned j = 0U;
+    64              for (auto i = begin; i != end; ++i) {
+    65                  magnitude[j] = static_cast<double>(*i);
+    66                  j += 1;
+    67              }
+    68
+    69              is_change = true;
+    70          }
+    71
+    72          EuclideanVector(std::initializer_list<double> values){
+    73              dimension = static_cast<unsigned >(values.size());
+    74              magnitude = new double[dimension];
+    75  #ifdef DEBUG
+    76              std::cout <<"7 allocate" << magnitude<<"\n";
+    77  #endif
+    78              unsigned i = 0U;
+    79              for(auto& value: values){
+    80                  magnitude[i] = value;
+    81                  ++i;
+    82              }
+    83              is_change = true;
+    84          }
+    85
+    86          EuclideanVector(const EuclideanVector &a);
+    87
+    88          EuclideanVector(EuclideanVector &&a);
+    89
+    90          ~EuclideanVector();
+    91
+    92          EuclideanVector& operator=(const EuclideanVector &ev);
+    93          EuclideanVector& operator=(EuclideanVector &&ev);
+    94
+    95          unsigned getNumDimensions() const;
+    96
+    97          double get(const int& i) const;
+    98
+    99          double getEuclideanNorm() const;
+   100
+   101          EuclideanVector createUnitVector() const;
+   102
+   103          double &operator[](unsigned i);
+   104
+   105          double operator[](unsigned i) const;
+   106
+   107          EuclideanVector &operator+=(const EuclideanVector& x);
+   108
+   109          EuclideanVector &operator-=(EuclideanVector x);
+   110
+   111          EuclideanVector &operator*=(const double& x);
+   112
+   113          EuclideanVector& operator/=(const double& x);
+   114
+   115
+   116
+   117          operator std::vector<double>() const;
+   118
+   119          operator std::list<double>() const;
+   120
+   121
+   122          friend std::ostream &operator<<(std::ostream &os, const EuclideanVector &v);
+   123
+   124          friend bool operator==(const EuclideanVector &lhs, const EuclideanVector &rhs);
+   125
+   126          friend bool operator!=(const EuclideanVector &lhs, const EuclideanVector &rhs);
+   127
+   128          friend EuclideanVector operator+(const EuclideanVector &lhs, const EuclideanVector &rhs);
+   129
+   130          friend EuclideanVector operator-(const EuclideanVector &lhs, const EuclideanVector &rhs);
+   131
+   132          friend EuclideanVector operator/(const EuclideanVector &lhs, double scale);
+   133
+   134
+   135          friend EuclideanVector operator*(const EuclideanVector& rhs, double scale);
+   136
+   137          friend EuclideanVector operator*(double scale, const EuclideanVector &lhs);
+   138
+   139          friend double operator*(const EuclideanVector &scale, const EuclideanVector &lhs);
+   140
+   141      private:
+   142          unsigned dimension;
+   143          double *magnitude;
+   144          mutable double normal;
+   145          mutable bool is_change = false;
+   146      };
+   147  }
+   148  /*
+   149   *
+   150   *
+   151   */
+   152  #endif //A2_EUCLIDEANVECTOR_H
+
+dos2unix: converting file EuclideanVector.cpp to Unix format ...
+
+===============================================================================
+-rw------- 1 cs6771 cs6771 7424 Sep 14 12:50 EuclideanVector.cpp
+===============================================================================
+
+     1  //
+     2  // Created by yu on 16/08/17.
+     3  //
+     4  #include "EuclideanVector.h"
+     5
+     6  namespace evec {
+     7
+     8
+     9      EuclideanVector::EuclideanVector(const EuclideanVector &a){
+    10          dimension = a.dimension;
+    11          magnitude = new double[dimension];
+    12          is_change = a.is_change;
+    13          normal = a.normal;
+    14  #ifdef DEBUG
+    15          std::cout <<"1 allocate" << magnitude<<"\n";
+    16  #endif
+    17          for (auto i = 0U; i < dimension; ++i) {
+    18              magnitude[i] = a.magnitude[i];
+    19          }
+    20      }
+    21
+    22      EuclideanVector::EuclideanVector(EuclideanVector &&a) {
+    23              dimension = a.dimension;
+    24              magnitude = a.magnitude;
+    25              normal = a.normal;
+    26              is_change = a.is_change;
+    27
+    28              a.dimension = 0;
+    29              a.magnitude = nullptr;
+    30            //  delete[] a.magnitude; std::cout << "9 free "<<a.magnitude<<"\n";
+    31      }
+    32
+    33      EuclideanVector::~EuclideanVector() {
+    34         // this->dimension = 0;
+    35          if(magnitude != nullptr){
+    36              delete[] this->magnitude;
+    37  #ifdef DEBUG
+    38              std::cout << * magnitude;
+    39              std::cout <<"        1 free" << magnitude<<"\n";
+    40  #endif
+    41          }
+    42      }
+    43
+    44      unsigned EuclideanVector::getNumDimensions() const{
+    45          return this->dimension;
+    46      }
+    47
+    48      double EuclideanVector::get(const int &i) const{
+    49          assert(static_cast<unsigned >(i) < getNumDimensions());
+                                ^
+                                + ===================================== +
+                                + do not put assert in final submission +
+                                + ===================================== +
+    50          return this->magnitude[static_cast<unsigned>(i)];
+    51      }
+    52
+    53      double EuclideanVector::getEuclideanNorm() const{
+    54          if(!is_change){
+    55              return normal;
+    56          }
+    57          double sum_power{0};;
+    58          for (auto i = 0U; i < this->dimension; ++i) {
+    59              sum_power += pow(this->magnitude[i], 2);
+    60          }
+    61          normal = sqrt(sum_power);
+    62          is_change = false;
+    63          return normal;
+    64      }
+    65
+    66      EuclideanVector EuclideanVector::createUnitVector() const{
+    67          double norm_dist = this->getEuclideanNorm();
+    68          EuclideanVector ret{*this};
+    69          for (auto i = 0U; i < this->dimension; ++i) {
+    70              ret.magnitude[i] /= norm_dist;
+    71          }
+    72          ret.is_change = true;
+    73          return ret;
+    74      }
+    75
+    76      double &EuclideanVector::operator[](unsigned i) {
+    77          assert(i < this->dimension);
+    78          is_change = true;
+    79          return this->magnitude[i];
+    80      }
+    81
+    82      double EuclideanVector::operator[](unsigned i) const {
+    83          assert(i < this->dimension);
+    84          return this->magnitude[i];
+    85      }
+    86
+    87      EuclideanVector& EuclideanVector::operator+=(const EuclideanVector &x) {
+    88          assert(this->dimension == x.dimension);
+    89          for (auto i = 0U; i < this->dimension; ++i) {
+    90              this->magnitude[i] += x.magnitude[i];
+    91          }
+    92          is_change = true;
+    93          return *this;
+    94      }
+    95
+    96      EuclideanVector &EuclideanVector::operator-=(EuclideanVector x) {
+    97          assert(this->dimension == x.dimension);
+    98          for (auto i = 0U; i < this->dimension; ++i) {
+    99              this->magnitude[i] -= x.magnitude[i];
+   100          }
+   101          is_change = true;
+   102          return *this;
+   103      }
+   104
+   105      EuclideanVector &EuclideanVector::operator*=(const double & x) {
+   106          for (auto i = 0U; i < this->dimension; ++i) {
+   107              this->magnitude[i] *= x;
+   108          }
+   109          is_change = true;
+   110          return *this;
+   111      }
+   112
+   113      EuclideanVector &EuclideanVector::operator/=(const double& x){
+   114          assert(x != 0);
+   115          for (auto i = 0U; i < this->dimension; ++i) {
+   116              magnitude[i] /= x;
+   117          }
+   118          is_change = true;
+   119          return *this;
+   120      }
+   121
+   122
+   123      EuclideanVector::operator std::vector<double>() const {
+   124          std::vector<double> ret;
+   125          for (auto i = 0U; i < this->dimension; ++i) {
+   126              ret.push_back(this->magnitude[i]);
+   127          }
+   128          return ret;
+   129      }
+   130
+   131      EuclideanVector::operator std::list<double>() const {
+   132          std::list<double> ret;
+   133          for (auto i = 0U; i < this->dimension; ++i) {
+   134              ret.push_back(this->magnitude[i]);
+   135          }
+   136          return ret;
+   137      }
+   138
+   139      std::ostream &operator<<(std::ostream &os, const EuclideanVector &v) {
+   140          os << "[";
+   141          for (auto i = 0U; i < v.dimension; ++i) {
+   142              os << v.magnitude[i];
+   143              if (i != v.dimension - 1) {
+   144                  os << " ";
+   145              }
+   146          }
+   147          os << "]";
+   148          return os;
+   149      }
+   150
+   151      bool operator==(const EuclideanVector &lhs, const EuclideanVector &rhs) {
+   152          if (lhs.dimension != rhs.dimension) {
+   153              return false;
+   154          }
+   155          for (auto i = 0U; i < lhs.dimension; ++i) {
+   156              if (lhs.magnitude[i] != rhs.magnitude[i]) {
+   157                  return false;
+   158              }
+   159          }
+   160          return true;
+   161      }
+   162
+   163      bool operator!=(const EuclideanVector &lhs, const EuclideanVector &rhs) {
+   164          if (lhs.dimension != rhs.dimension) {
+   165              return true;
+   166          }
+   167          for (auto i = 0U; i < lhs.dimension; ++i) {
+   168              if (lhs.magnitude[i] != rhs.magnitude[i]) {
+   169                  return true;
+   170              }
+   171          }
+   172          return false;
+   173      }
+   174
+   175      EuclideanVector operator+(const EuclideanVector &lhs, const EuclideanVector &rhs) {
+   176          assert(lhs.dimension == rhs.dimension);
+   177          EuclideanVector ret(rhs.dimension);
+   178          for (auto i = 0U; i < lhs.dimension; ++i) {
+   179              ret.magnitude[i] = rhs.magnitude[i] + lhs.magnitude[i];
+   180          }
+   181          return ret;
+   182      }
+   183
+   184      EuclideanVector operator-(const EuclideanVector &lhs, const EuclideanVector &rhs) {
+   185          assert(lhs.dimension == rhs.dimension);
+   186          EuclideanVector ret(rhs.dimension);
+   187          for (auto i = 0U; i < lhs.dimension; ++i) {
+   188              ret.magnitude[i] = lhs.magnitude[i] - rhs.magnitude[i];
+   189          }
+   190          return ret;
+   191      }
+   192
+   193  //template<typename T>
+   194      EuclideanVector operator/(const EuclideanVector &lhs, double scale) {
+   195         // assert(scale != 0);
+   196          EuclideanVector ret(lhs.dimension);
+   197          for (auto i = 0U; i < lhs.dimension; ++i) {
+   198              ret.magnitude[i] = lhs.magnitude[i] / scale;
+   199          }
+   200          return ret;
+   201      }
+   202
+   203
+   204      EuclideanVector operator*(const EuclideanVector &lhs, double scale) {
+   205          EuclideanVector ret{lhs};
+   206          for (auto i = 0U; i < lhs.dimension; ++i) {
+   207              ret.magnitude[i] *= scale;
+   208          }
+   209          return ret;
+   210      }
+   211
+   212
+   213      EuclideanVector operator*(double scale, const EuclideanVector &lhs) {
+   214          EuclideanVector ret{lhs};
+   215          for (auto i = 0U; i < lhs.dimension; ++i) {
+   216              ret.magnitude[i] *= scale;
+   217          }
+   218          return ret;
+   219      }
+   220
+   221
+   222      double operator*(const EuclideanVector &rhs, const EuclideanVector &lhs) {
+   223          assert(lhs.dimension == rhs.dimension);
+   224          double ret = 0;
+   225          for (auto i = 0U; i < lhs.dimension; ++i) {
+   226              ret += (lhs.magnitude[i] * rhs.magnitude[i]);
+   227          }
+   228          return ret;
+   229      }
+   230
+   231      EuclideanVector& EuclideanVector::operator=(const EuclideanVector &rhs) {
+   232          if(this == &rhs){
+   233              return *this;
+   234          }
+   235          if (magnitude != nullptr){
+   236              delete[] magnitude;
+   237          }
+   238          dimension = rhs.dimension;
+   239          magnitude = new double[dimension];
+   240          for(auto i=0U; i < dimension; ++i){
+   241              magnitude[i] = rhs.magnitude[i];
+   242          }
+   243          is_change = true;
+   244          return *this;
+   245      }
+   246
+   247      EuclideanVector &EuclideanVector::operator=(EuclideanVector &&ev) {
+   248          if(this != &ev) {
+   249              delete[] magnitude;
+   250              dimension = ev.dimension;
+   251              magnitude = ev.magnitude;
+   252
+   253              ev.magnitude = nullptr;
+   254              ev.dimension = 0;
+   255          }
+   256          is_change = true;
+   257          return *this;
+   258      }
+   259
+   260  }
+   261
+   262
+   263
+   264
+   265
+   266
+   267
+   268
+   269
+
+Compiling with g++ -std=c++14 -Wall -Werror -fsanitize=address -O2 ...
+
+!!section tests
+** Test 1: test1.cpp - Test 1 (Simple Constructors)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 2: test2.cpp - Test 2 (Header Guard and Others)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 3: test3.cpp - Test 3 (Euclidean Norm Caching)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 4: test4.cpp - Test 4 (Friends)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 5: test5_6.cpp - Test 5 (Compound Assignments) -- Compile
+--------------------------------
+** Test failed (student's output on the left, expected on the right). Output difference:-
+ERROR: ld.so: object '/usr/local/lib/libasan.so.3' from LD_PR <
+ERROR: ld.so: object '/usr/local/lib/libasan.so.3' from LD_PR <
+ERROR: ld.so: object '/usr/local/lib/libasan.so.3' from LD_PR <
+ERROR: ld.so: object '/usr/local/lib/libasan.so.3' from LD_PR <
+ERROR: ld.so: object '/usr/local/lib/libasan.so.3' from LD_PR <
+Compile Success                                                 Compile Success
+--------------------------------
+** Test 6: test5_6.cpp - Test 6 (Compound Assignments) -- Run
+--------------------------------
+** Test passed
+--------------------------------
+** Test 7: test7_8.cpp - Test 7 ([] Overloading and Others) - Compile
+--------------------------------
+** Test passed
+--------------------------------
+** Test 8: test7_8.cpp - Test 8 (Overloading and Others) - Run
+--------------------------------
+** Test passed
+--------------------------------
+** Test 9: test9.cpp - Test 9 (Copy Control)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 10: test10.cpp - Test 10 (Copy Construction)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 11: test11.cpp - Test 11 (Copy Assignment)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 12: test12.cpp - Test 12 (List Initialization)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 13: test13.cpp Test 13 (Move Construction)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 14: test13.cpp Test 14 (Move Assignment)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 15: test15.cpp - Test 15 (Performance Test for Large Euclidean Vectors)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 16: test16.cpp - Test 16 (Miscellaneous Tests)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 17: test17.cpp - Test 17 (Miscellanous Tests)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 18: test18.cpp - Test 18 (Copy onto itself)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 19: test19.cpp - Test 19 (Move onto itself)
+--------------------------------
+** Test passed
+--------------------------------
+!!section assess
+
+!!perftab       ** PERFORMANCE ANALYSIS **
+
+Test  1 (6)     test1.cpp - Test 1 (Simple Constructors) .  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test  2 (3)     test2.cpp - Test 2 (Header Guard and Others) .  ..  ..  ..  ..  ..  ..  !!PASSed
+Test  3 (2)     test3.cpp - Test 3 (Euclidean Norm Caching) ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test  4 (6)     test4.cpp - Test 4 (Friends) .  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test  5 (4)     test5_6.cpp - Test 5 (Compound Assignments) -- Compile  ..  ..  ..  ..  !!PASSed
+Test  6 (4)     test5_6.cpp - Test 6 (Compound Assignments) -- Run  ..  ..  ..  ..  ..  !!PASSed
+Test  7 (4)     test7_8.cpp - Test 7 ([] Overloading and Others) - Compile  ..  ..  ..  !!PASSed
+Test  8 (5)     test7_8.cpp - Test 8 (Overloading and Others) - Run ..  ..  ..  ..  ..  !!PASSed
+Test  9 (4)     test9.cpp - Test 9 (Copy Control)   ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 10 (4)     test10.cpp - Test 10 (Copy Construction) .  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 11 (4)     test11.cpp - Test 11 (Copy Assignment)  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 12 (2)     test12.cpp - Test 12 (List Initialization)  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 13 (4)     test13.cpp Test 13 (Move Construction)  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 14 (4)     test13.cpp Test 14 (Move Assignment) .  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 15 (4)     test15.cpp - Test 15 (Performance Test for Large Euclidean Vectors) ..  !!PASSed
+Test 16 (3)     test16.cpp - Test 16 (Miscellaneous Tests)  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 17 (3)     test17.cpp - Test 17 (Miscellanous Tests)   ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 18 (2)     test18.cpp - Test 18 (Copy onto itself) ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 19 (2)     test19.cpp - Test 19 (Move onto itself) ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+
+!!perfmark      ** TOTAL PERFORMANCE MARK:    70/70
+
+!!marktab       **  MARKER'S  ASSESSMENT  **
+
+Comments and code formatting/layout/style
+                                          (10)  10
+ ^
+ + ====================================================================================== +
+ + if you are going to use "this", use it consistently, add it to every member variable.  +
+ + ====================================================================================== +
+
+Code Structure (functions, variable names, scope, C++ features, STL, etc)
+                                          (15)  15
+
+Dynamic memory management ..  ..  ..  ..  (5)   5
+
+!!finalmark     **  FINAL  ASSIGNMENT  MARK:    100/100
+
+5094935 Feng, Yu                                8543   COMPCS
+
+
+Marked by z5019791 on Sun Sep 24 20:21:48 2017
+
+
+
+
+
+
+Marked by z5019791 on Sun Sep 24 20:29:15 2017
+
+
+
+
+Marked by z5019791 on Sun Sep 24 20:42:28 2017
+
+
+
+
+Marked by z5019791 on Sun Sep 24 21:21:07 2017
+
+
+
+
+Marked by z5019791 on Sun Sep 24 21:22:04 2017
+
+
+
+
+Marked by z5019791 on Sun Sep 24 21:32:17 2017
+
+
+
+
+Marked by z5019791 on Sun Sep 24 21:59:22 2017
+
+
+
+
+
+
+Marked by z5019791 on Sun Sep 24 22:15:01 2017
+
