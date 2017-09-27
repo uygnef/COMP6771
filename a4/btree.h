@@ -74,6 +74,11 @@ private:
     };
 
 
+    pair<iterator, bool> insert(){
+
+    }
+
+
 
 };
 
