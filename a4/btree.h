@@ -26,6 +26,7 @@
 template <typename T>
 class btree {
 public:
+    friend class btree_iterator<T> ;
     /** Hmm, need some iterator typedefs here... friends? **/
 
     /**
@@ -41,7 +42,7 @@ public:
      * @param maxNodeElems the maximum number of elements
      *        that can be stored in each B-Tree node
      */
-    btree(size_t maxNodeElems = 40):max_size{maxNodeElems}, root{}{};
+    btree(size_t maxNodeElems = 40):max_size{maxNodeElems}, root{std::make_shared<node_set>(node_set(maxNodeElems))}{};
 
     /**
      * The copy constructor and  assignment operator.
@@ -58,7 +59,7 @@ public:
      *
      * @param original a const lvalue reference to a B-Tree object
      */
-    btree(const btree<T>& original);
+//    btree(const btree<T>& original);
 
     /**
      * Move constructor
@@ -66,7 +67,7 @@ public:
      *
      * @param original an rvalue reference to a B-Tree object
      */
-    btree(btree<T>&& original);
+//    btree(btree<T>&& original);
 
 
     /**
@@ -75,7 +76,7 @@ public:
      *
      * @param rhs a const lvalue reference to a B-Tree object
      */
-    btree<T>& operator=(const btree<T>& rhs);
+//    btree<T>& operator=(const btree<T>& rhs);
 
     /**
      * Move assignment
@@ -84,7 +85,7 @@ public:
      *
      * @param rhs a const reference to a B-Tree object
      */
-    btree<T>& operator=(btree<T>&& rhs);
+//    btree<T>& operator=(btree<T>&& rhs);
 
     /**
      * Puts a breadth-first traversal of the B-Tree onto the output
@@ -95,7 +96,7 @@ public:
      * @param tree a const reference to a B-Tree object
      * @return a reference to os
      */
-    friend std::ostream& operator<< <T> (std::ostream& os, const btree<T>& tree);
+//    friend std::ostream& operator<< <T> (std::ostream& os, const btree<T>& tree);
 
     /**
      * The following can go here
@@ -124,7 +125,7 @@ public:
       *         non-const end() returns if no such match was ever found.
       */
     using iterator = btree_iterator<T>;
-    iterator find(const T& elem);
+//    iterator find(const T& elem);
 
     /**
       * Identical in functionality to the non-const version of find,
@@ -135,7 +136,7 @@ public:
       * @return an iterator to the matching element, or whatever the
       *         const end() returns if no such match was ever found.
       */
-    const_iterator find(const T& elem) const;
+//    const_iterator find(const T& elem) const;
 
     /**
       * Operation which inserts the specified element
@@ -172,9 +173,10 @@ public:
       * inserted using the insert operation.
       * Check that your implementation does not leak memory!
       */
-    ~btree();
+    ~btree() = default;
 
 private:
+    size_t max_size;
     // return type of insert function
     enum IS_INSERTABLE{
         FULL = 0,
@@ -186,14 +188,16 @@ private:
     struct node;
     struct node_set;
 
-    const static size_t max_size;   //max size of a node
-    node_set root;
+    //const size_t max_size;   //max size of a node
+    std::shared_ptr<node_set> root = std::make_shared<node_set>();
 
     struct node{
         T val;
+        using Node_ptr = std::shared_ptr<node>;
         std::shared_ptr<node_set> child;
+
         node() = delete;
-        node(T val, std::shared_ptr<node_set> child):val{val}, child{child}{}
+        node(T val, std::shared_ptr<node_set> child, size_t max_size):val{val} { child = std::make_shared<node_set>(node_set(max_size));}
     };
 
     struct node_set{
@@ -205,41 +209,67 @@ private:
         };
 
         std::shared_ptr<node_set> parent;
-        std::set<std::shared_ptr, compare> nodes;
-        std::shared_ptr<node_set> last_child;
+        std::set<std::shared_ptr<node>, compare> nodes;
+        std::shared_ptr<node_set> last_child = nullptr;
+        size_t max_size;
 
         //TODO: can it be default?
-        node_set() = default;
+        node_set(size_t max_num):max_size{max_num}{}
 
         //TODO: do we need a shared pointer node A as parameter or T type value and construct a new node?
         // insert into nodes set
-        IS_INSERTABLE insert(std::shared_ptr a){
+        std::pair<typename std::set<std::shared_ptr<node>>::iterator,  IS_INSERTABLE> insert(std::shared_ptr<node> a){
             if(nodes.size() < max_size){
                 auto result = nodes.insert(a);
                 if(result.second){
-                    return SUCCESS;
+                    return std::make_pair(result.first, SUCCESS);
                 }
-                return DUP;
+                return std::make_pair(result.first, DUP);
             }
-            return FULL;
+            auto pos = nodes.find(a);
+
+            //return the last smaller element's iterator in the nodes set when it's full.
+            if(pos == nodes.end()){
+                for(auto i = nodes.begin(); i != nodes.end(); ++i){
+                    if(a.get()->val < i->get()->val){
+                        return std::make_pair(i, FULL);
+                    }
+                }
+                return std::make_pair(pos, FULL);
+            }
+            return std::make_pair(pos, DUP);
         }
 
     };
+
 };
 
 template <typename T>
-std::pair<iterator, bool> btree::insert(const T &elem) {
-    node new_node{elem, nullptr};
-    auto& temp_node_set = root;
-
-    auto inset_flag = temp_node_set.insert(std::make_shared<node>(new_node));
-    while( inset_flag != SUCCESS ){
-        if(inset_flag == DUP){
-            return std::make_pair()
+std::pair<typename btree<T>::iterator, bool> btree<T>::insert(const T &elem) {
+    auto new_node_pointer = std::make_shared<node>(node{elem, nullptr, max_size});
+    auto temp_node_set = root;
+    auto inset_flag = temp_node_set.get()->insert(new_node_pointer);
+    while( inset_flag.second != SUCCESS ){
+        if(inset_flag.second == DUP){
+            return std::make_pair(btree_iterator<T>(temp_node_set, inset_flag.first), false);
         }
-    }
 
-    return std::pair <iterator , bool> ();
+        if(inset_flag.second == FULL){
+            if(inset_flag.first == temp_node_set.get()->nodes.end()){
+                if(temp_node_set.get()->last_child == nullptr){
+                    temp_node_set.get()->last_child = std::make_shared<node_set>(node_set(this->max_size));
+                }
+                temp_node_set = temp_node_set.get()->last_child;
+            }else{
+                if(inset_flag.first->get()->child == nullptr){
+                    inset_flag.first->get()->child = std::make_shared<node_set>(node_set(this->max_size));
+                }
+                temp_node_set = inset_flag.first->get()->child;
+            }
+        }
+        inset_flag = temp_node_set.get()->insert(new_node_pointer);
+    }
+    return std::make_pair(btree_iterator<T>(temp_node_set, inset_flag.first), true);
 }
 
 #endif
