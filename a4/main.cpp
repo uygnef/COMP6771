@@ -15,6 +15,10 @@ int main() {
         testContainer.insert(i);
     }
 
+    long s = 3;
+    auto a = testContainer.find(s);
+    std::cout << "\n"<< a.it->get()->val;
+
 
 //    std::set<std::shared_ptr<node>, compare> a;
 //    auto node1 = std::make_shared<node>(node{1});
@@ -26,7 +30,6 @@ int main() {
 //    for(const auto& i: a){
 //        std::cout << i.get()->val;
 //    }
-    std::cout << "1\n";
 
     return 0;
 }

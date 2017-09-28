@@ -25,10 +25,11 @@ public:
 
     btree_iterator() = delete;
 
-
+    btree_iterator(std::nullptr_t, std::nullptr_t){};
     btree_iterator(node_set pointee,
                    iter index): pointee{pointee}, it{index} {}
-private:
+
+public:
     node_set pointee;
     iter it;
 };

@@ -59,7 +59,7 @@ public:
      *
      * @param original a const lvalue reference to a B-Tree object
      */
-//    btree(const btree<T>& original);
+    btree(const btree<T>& original);
 
     /**
      * Move constructor
@@ -166,6 +166,7 @@ public:
       *         because no matching element was there prior to the insert call.
       */
     std::pair<iterator, bool> insert(const T& elem);
+    iterator find(const T& elem);
 
     /**
       * Disposes of all internal resources, which includes
@@ -176,6 +177,7 @@ public:
     ~btree() = default;
 
 private:
+    iterator end() const;
     size_t max_size;
     // return type of insert function
     enum IS_INSERTABLE{
@@ -271,5 +273,41 @@ std::pair<typename btree<T>::iterator, bool> btree<T>::insert(const T &elem) {
     }
     return std::make_pair(btree_iterator<T>(temp_node_set, inset_flag.first), true);
 }
+
+template <typename T>
+typename btree<T>::iterator btree<T>::find(const T &elem) {
+    auto temp_node_set = root;
+
+    while(true){
+        for(auto i = temp_node_set.get()->nodes.cbegin(); i != temp_node_set.get()->nodes.end(); ++i){
+            if(elem == i->get()->val){
+                return btree_iterator<T>(temp_node_set, i);
+            }
+            if(elem < i->get()->val){
+                if(i->get()->child == nullptr){
+                    return end();
+                }
+                temp_node_set = i->get()->child;
+                continue;
+            }
+        }
+        temp_node_set = temp_node_set.get()->last_child;
+    }
+}
+
+template <typename T>
+typename btree<T>::iterator btree<T>::end() const {
+    return btree_iterator<T>(nullptr, nullptr);
+}
+
+template <typename T>
+btree<T>::btree(const btree<T> &original) {
+    auto new_btree = btree(original.max_size);
+    auto temp_node_set = new_btree.root;
+    for(auto i: original.root.get()->nodes){
+        new_btree.root
+    }
+}
+
 
 #endif
