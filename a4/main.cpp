@@ -18,8 +18,14 @@ int main() {
     long s = 3;
     auto a = testContainer.find(s);
     std::cout << "\n"<< a.it->get()->val;
+    auto c(testContainer);
+    a = c.find(s);
+    std::cout << "\n ----"<< a.it->get()->val;
 
-
+    for(long i = 11; i < 20; ++i){
+        std::cout << i;
+        c.insert(i);
+    }
 //    std::set<std::shared_ptr<node>, compare> a;
 //    auto node1 = std::make_shared<node>(node{1});
 //    auto node2 = std::make_shared<node>(node{2});

@@ -190,8 +190,11 @@ private:
     struct node;
     struct node_set;
 
+    std::shared_ptr<node_set>  copy_nodes(const node_set& origin);
+
+
     //const size_t max_size;   //max size of a node
-    std::shared_ptr<node_set> root = std::make_shared<node_set>();
+    std::shared_ptr<node_set> root = std::make_shared<node_set>(node_set(max_size));
 
     struct node{
         T val;
@@ -200,9 +203,13 @@ private:
 
         node() = delete;
         node(T val, std::shared_ptr<node_set> child, size_t max_size):val{val} { child = std::make_shared<node_set>(node_set(max_size));}
+        node(const node& orig);
     };
 
     struct node_set{
+
+        node_set() = delete;
+        node_set(size_t a): max_size{a}{std::cout << "init----------"<< max_size << "\n";}
 
         struct compare{
             bool operator() (const std::shared_ptr<node>& lhs, const std::shared_ptr<node>& rhs ){
@@ -213,14 +220,16 @@ private:
         std::shared_ptr<node_set> parent;
         std::set<std::shared_ptr<node>, compare> nodes;
         std::shared_ptr<node_set> last_child = nullptr;
-        size_t max_size;
+        const size_t max_size;
 
         //TODO: can it be default?
-        node_set(size_t max_num):max_size{max_num}{}
 
+
+        node_set(const node_set& origin);
         //TODO: do we need a shared pointer node A as parameter or T type value and construct a new node?
         // insert into nodes set
         std::pair<typename std::set<std::shared_ptr<node>>::iterator,  IS_INSERTABLE> insert(std::shared_ptr<node> a){
+            std::cout << "size si:" << max_size << "\n";
             if(nodes.size() < max_size){
                 auto result = nodes.insert(a);
                 if(result.second){
@@ -245,6 +254,26 @@ private:
     };
 
 };
+
+template <typename T>
+btree<T>::node_set::node_set(const btree<T>::node_set &origin): max_size{origin.max_size} {
+    for(const auto& i: origin.nodes){
+        auto new_node = std::make_shared<node>(node(i.get()->val, nullptr, origin.max_size));
+        if(i.get()->child == nullptr){
+            nodes.insert(new_node);
+        }else{
+            new_node.get()->child = i.get()->child;
+            nodes.insert(new_node);
+        }
+    }
+}
+
+template <typename T>
+btree<T>::node::node(const btree<T>::node &orig) {
+    val = orig.val;
+    //TODO: ERROR
+    child = orig.child;
+}
 
 template <typename T>
 std::pair<typename btree<T>::iterator, bool> btree<T>::insert(const T &elem) {
@@ -302,11 +331,28 @@ typename btree<T>::iterator btree<T>::end() const {
 
 template <typename T>
 btree<T>::btree(const btree<T> &original) {
-    auto new_btree = btree(original.max_size);
-    auto temp_node_set = new_btree.root;
-    for(auto i: original.root.get()->nodes){
-        new_btree.root
+    max_size = original.max_size;
+    root = copy_nodes(*original.root);
+}
+
+
+template <typename T>
+typename std::shared_ptr<typename btree<T>::node_set> btree<T>::copy_nodes(const btree<T>::node_set &origin) {
+    auto ret = std::make_shared<node_set>(node_set(origin.max_size));
+    for(const auto& i: origin.nodes){
+        if( i.get()->child == nullptr){
+            ret.get()->insert(std::make_shared<node>(node(i.get()->val, nullptr, max_size)));
+        }else{
+            auto new_node = std::make_shared<node>(node(i.get()->val, nullptr, max_size));
+            new_node.get()->child = copy_nodes(*i.get()->child.get());
+        }
     }
+    if(origin.last_child == nullptr){
+        ret.get()->last_child = nullptr;
+    }else{
+        ret.get()->last_child = copy_nodes(*origin.last_child.get());
+    }
+    return ret;
 }
 
 
