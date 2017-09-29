@@ -13,7 +13,8 @@
 // iterator class btree_iterator (and possibly const_btree_iterator)
 template<typename T> class btree;
 
-template<typename T> class btree_iterator: std::iterator< std::bidirectional_iterator_tag, T>{
+template<typename T>
+class btree_iterator: std::iterator< std::bidirectional_iterator_tag, T>{
 public:
     typedef std::bidirectional_iterator_tag  iterator_category;
     typedef T* pointer;
@@ -29,8 +30,16 @@ public:
     btree_iterator(node_set pointee,
                    iter index): pointee{pointee}, it{index} {}
 
+    bool operator==(const btree_iterator<T>& other) const;
+
 public:
     node_set pointee;
     iter it;
 };
+
+template<typename T>
+bool btree_iterator<T>::operator==(const btree_iterator<T> &other) const {
+    return other.pointee == this->pointee && other.it == this->it;
+}
+
 #endif

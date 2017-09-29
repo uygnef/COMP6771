@@ -36,6 +36,15 @@ int main() {
 //    for(const auto& i: a){
 //        std::cout << i.get()->val;
 //    }
+    auto d(std::move(c));
+    std::cout << "move success\n";
+    a = c.find(s);
+    std::cout << "move -sd\n";
+    if(a == c.end()){
+        std::cout <<"not have\n";
+    }
+    a = d.find(s);
+    std::cout << "\n ----"<< a.it->get()->val;
 
     return 0;
 }

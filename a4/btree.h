@@ -67,7 +67,7 @@ public:
      *
      * @param original an rvalue reference to a B-Tree object
      */
-//    btree(btree<T>&& original);
+    btree(btree<T>&& original);
 
 
     /**
@@ -175,9 +175,9 @@ public:
       * Check that your implementation does not leak memory!
       */
     ~btree() = default;
+    iterator end() const;
 
 private:
-    iterator end() const;
     size_t max_size;
     // return type of insert function
     enum IS_INSERTABLE{
@@ -320,6 +320,9 @@ typename btree<T>::iterator btree<T>::find(const T &elem) {
                 continue;
             }
         }
+        if(temp_node_set.get()->nodes.size() < temp_node_set.get()->max_size){
+            return end();
+        }
         temp_node_set = temp_node_set.get()->last_child;
     }
 }
@@ -353,6 +356,12 @@ typename std::shared_ptr<typename btree<T>::node_set> btree<T>::copy_nodes(const
         ret.get()->last_child = copy_nodes(*origin.last_child.get());
     }
     return ret;
+}
+
+template <typename T>
+btree<T>::btree(btree<T> &&original): max_size{original.max_size} {
+    std::cout<<"call move constructor\n";
+    std::swap(this->root, original.root);
 }
 
 
