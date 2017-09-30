@@ -43,8 +43,20 @@ int main() {
     if(a == c.end()){
         std::cout <<"not have\n";
     }
-    a = d.find(s);
+    a = d.find(11);
     std::cout << "\n ----"<< a.it->get()->val;
 
+    d = testContainer;
+    a = d.find(9);
+    std::cout << "\n --2sa--"<< a.it->get()->val;
+
+    d = std::move(testContainer);
+
+
+    std::set<int> dea;
+    auto i = dea.end();
+    if(i == dea.end()){
+        std::cout << "equal\n";
+    }
     return 0;
 }

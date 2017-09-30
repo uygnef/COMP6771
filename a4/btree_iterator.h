@@ -22,24 +22,77 @@ public:
     typedef T value_type;
 
     typedef std::shared_ptr<typename btree<T>::node_set> node_set;
-    typedef typename std::set< std::shared_ptr<typename btree<T>::node> >::const_iterator iter;
+    typedef typename std::set< std::shared_ptr<typename btree<T>::node> >::iterator iter;
 
-    btree_iterator() = delete;
+    btree_iterator() = default;
 
     btree_iterator(std::nullptr_t, std::nullptr_t){};
     btree_iterator(node_set pointee,
                    iter index): pointee{pointee}, it{index} {}
 
     bool operator==(const btree_iterator<T>& other) const;
+    btree_iterator& operator++();
 
 public:
+    bool next();
+
     node_set pointee;
     iter it;
+};
+
+template<typename T>
+class const_btree_iterator {
+public:
+    typedef std::shared_ptr<typename btree<T>::node_set> node_set;
+    typedef typename std::set< std::shared_ptr<typename btree<T>::node> >::const_iterator iter;
+
+    const_btree_iterator(std::nullptr_t, std::nullptr_t){};
+    const_btree_iterator(node_set p, iter it): pointee{p}, it{it} {}
+
+private:
+    node_set pointee;
+    iter it;
+
 };
 
 template<typename T>
 bool btree_iterator<T>::operator==(const btree_iterator<T> &other) const {
     return other.pointee == this->pointee && other.it == this->it;
 }
+
+//template<typename T>
+//btree_iterator<T> &btree_iterator::operator++() {
+//    ++it;
+//    auto next = *it;
+//    if(it == pointee.get()->nodes.end()){
+//        if(pointee.get()->last_child != nullptr){
+//            next = pointee.get()->last_child;
+//        }else{
+//
+//        }
+//    }
+//
+//    if(next.get()->child != nullptr){
+//        pointee = next.get()->child;
+//        it = next.get()->child.get()->nodes.begin();
+//    }else{
+//
+//    }
+//
+//
+//    return <#initializer#>;
+//}
+//
+//template<typename T>
+//bool btree_iterator<T>::next() {
+//    ++it;
+//    if(it == pointee.get()->nodes.end()){
+//        if(pointee.get()->last_child == nullptr){
+//            pointee = pointee.get()->parent;
+//            it = pointee
+//        }
+//    }
+//    return false;
+//}
 
 #endif

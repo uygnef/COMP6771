@@ -27,6 +27,7 @@ template <typename T>
 class btree {
 public:
     friend class btree_iterator<T> ;
+    friend class const_btree_iterator<T>;
     /** Hmm, need some iterator typedefs here... friends? **/
 
     /**
@@ -76,7 +77,7 @@ public:
      *
      * @param rhs a const lvalue reference to a B-Tree object
      */
-//    btree<T>& operator=(const btree<T>& rhs);
+    btree<T>& operator=(const btree<T>& rhs);
 
     /**
      * Move assignment
@@ -85,7 +86,7 @@ public:
      *
      * @param rhs a const reference to a B-Tree object
      */
-//    btree<T>& operator=(btree<T>&& rhs);
+    btree<T>& operator=(btree<T>&& rhs);
 
     /**
      * Puts a breadth-first traversal of the B-Tree onto the output
@@ -125,7 +126,7 @@ public:
       *         non-const end() returns if no such match was ever found.
       */
     using iterator = btree_iterator<T>;
-//    iterator find(const T& elem);
+    iterator find(const T& elem);
 
     /**
       * Identical in functionality to the non-const version of find,
@@ -166,7 +167,6 @@ public:
       *         because no matching element was there prior to the insert call.
       */
     std::pair<iterator, bool> insert(const T& elem);
-    iterator find(const T& elem);
 
     /**
       * Disposes of all internal resources, which includes
@@ -190,7 +190,9 @@ private:
     struct node;
     struct node_set;
 
-    std::shared_ptr<node_set>  copy_nodes(const node_set& origin);
+    using set_iter = typename std::set<std::shared_ptr<node>>::iterator;
+
+    std::shared_ptr<node_set> copy_nodes(const node_set& origin);
 
 
     //const size_t max_size;   //max size of a node
@@ -208,8 +210,12 @@ private:
 
     struct node_set{
 
+
         node_set() = delete;
-        node_set(size_t a): max_size{a}{std::cout << "init----------"<< max_size << "\n";}
+        node_set(size_t a): max_size{a}{std::cout << "insdf-------"<< max_size << "\n";}
+        node_set(size_t a, set_iter p): max_size{a}, parent{p}{std::cout << "init----------"<< max_size << "\n";}
+
+        set_iter parent;
 
         struct compare{
             bool operator() (const std::shared_ptr<node>& lhs, const std::shared_ptr<node>& rhs ){
@@ -217,10 +223,9 @@ private:
             }
         };
 
-        std::shared_ptr<node_set> parent;
         std::set<std::shared_ptr<node>, compare> nodes;
         std::shared_ptr<node_set> last_child = nullptr;
-        const size_t max_size;
+        size_t max_size;
 
         //TODO: can it be default?
 
@@ -288,12 +293,12 @@ std::pair<typename btree<T>::iterator, bool> btree<T>::insert(const T &elem) {
         if(inset_flag.second == FULL){
             if(inset_flag.first == temp_node_set.get()->nodes.end()){
                 if(temp_node_set.get()->last_child == nullptr){
-                    temp_node_set.get()->last_child = std::make_shared<node_set>(node_set(this->max_size));
+                    temp_node_set.get()->last_child = std::make_shared<node_set>(node_set(this->max_size, inset_flag.first));
                 }
                 temp_node_set = temp_node_set.get()->last_child;
             }else{
                 if(inset_flag.first->get()->child == nullptr){
-                    inset_flag.first->get()->child = std::make_shared<node_set>(node_set(this->max_size));
+                    inset_flag.first->get()->child = std::make_shared<node_set>(node_set(this->max_size, inset_flag.first));
                 }
                 temp_node_set = inset_flag.first->get()->child;
             }
@@ -362,6 +367,29 @@ template <typename T>
 btree<T>::btree(btree<T> &&original): max_size{original.max_size} {
     std::cout<<"call move constructor\n";
     std::swap(this->root, original.root);
+}
+
+template <typename T>
+btree<T> &btree<T>::operator=(const btree<T> &rhs) {
+    if(this == &rhs){
+        return *this;
+    }
+    root.get()->nodes.clear();
+    max_size = rhs.max_size;
+    root = copy_nodes(*rhs.root);
+    return *this;
+}
+
+template <typename T>
+btree<T> &btree<T>::operator=(btree<T> &&rhs) {
+    if(this == &rhs){
+        return *this;
+    }
+    root.get()->nodes.clear();
+    max_size = 0;
+    std::swap(root, rhs.root);
+    std::swap(max_size, rhs.max_size);
+    return *this;
 }
 
 
