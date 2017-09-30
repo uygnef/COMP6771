@@ -35,6 +35,8 @@ public:
 
 public:
     void next();
+    void up();
+    void down();
 
     node_set pointee;
     iter it;
@@ -68,6 +70,9 @@ btree_iterator<T> &btree_iterator<T>::operator++() {
 
 template<typename T>
 void btree_iterator<T>::next() {
+    if(pointee.get()->parent.pointee == nullptr && it == pointee.get()->nodes.end()){
+
+    }
     ++it;
     if(it == pointee.get()->nodes.end()){
         if(pointee.get()->last_child == nullptr){
@@ -75,18 +80,28 @@ void btree_iterator<T>::next() {
             ++it;
             pointee = pointee.get()->parent.pointee;
         }else{
-            pointee = pointee.get()->last_child.get();
+            pointee = pointee.get()->last_child;
             it = pointee.get()->nodes.begin();
         }
     }else if(it->get()->child != nullptr){
-        pointee = it->get()->child.get();
+        pointee = it->get()->child;
         it = pointee.get()->nodes.begin();
     }
 
     while(pointee == nullptr || it == pointee.get()->nodes.end()){
         next();
     }
-    return;
+}
+
+template<typename T>
+void btree_iterator<T>::up() {
+    if(pointee.get()->parent.pointee == nullptr){
+        pointee == nullptr;
+        it = nullptr;
+    } else {
+        it = pointee.get()->parent.it;
+        pointee = pointee.get()->parent.pointee;
+    }
 }
 
 #endif

@@ -48,15 +48,15 @@ int main() {
 
     d = testContainer;
     a = d.find(9);
-    std::cout << "\n --2sa--"<< a.it->get()->val;
+    std::cout << "\n --2sa--"<< a.it->get()->val<<"\n";
 
     d = std::move(testContainer);
 
+    auto sfd = d.begin();
+    std::cout << sfd.it->get()->val;
+    ++sfd;
+    std::cout << sfd.it->get()->val;
 
-    std::set<int> dea;
-    auto i = dea.end();
-    if(i == dea.end()){
-        std::cout << "equal\n";
-    }
+
     return 0;
 }

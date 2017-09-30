@@ -16,7 +16,6 @@
 #include <set>
 #include <memory>
 
-
 // we better include the iterator
 #include "btree_iterator.h"
 
@@ -26,8 +25,11 @@
 template <typename T>
 class btree {
 public:
+
     friend class btree_iterator<T> ;
     friend class const_btree_iterator<T>;
+    using iterator = btree_iterator<T>;
+
     /** Hmm, need some iterator typedefs here... friends? **/
 
     /**
@@ -111,6 +113,9 @@ public:
      * -- crend()
      */
 
+    iterator begin();
+    iterator end();
+
     /**
       * Returns an iterator to the matching element, or whatever
       * the non-const end() returns if the element could
@@ -125,7 +130,6 @@ public:
       * @return an iterator to the matching element, or whatever the
       *         non-const end() returns if no such match was ever found.
       */
-    using iterator = btree_iterator<T>;
     iterator find(const T& elem);
 
     /**
@@ -390,6 +394,17 @@ btree<T> &btree<T>::operator=(btree<T> &&rhs) {
     std::swap(root, rhs.root);
     std::swap(max_size, rhs.max_size);
     return *this;
+}
+
+template <typename T>
+typename btree<T>::iterator btree<T>::begin() {
+    return btree_iterator<T>(root ,root.get()->nodes.begin());
+}
+
+template <typename T>
+typename btree<T>::iterator btree<T>::end() {
+
+    return btree::iterator<T>();
 }
 
 
