@@ -213,9 +213,9 @@ private:
 
         node_set() = delete;
         node_set(size_t a): max_size{a}{std::cout << "insdf-------"<< max_size << "\n";}
-        node_set(size_t a, set_iter p): max_size{a}, parent{p}{std::cout << "init----------"<< max_size << "\n";}
+        node_set(size_t a, btree_iterator<T> p): max_size{a}, parent{p}{std::cout << "init----------"<< max_size << "\n";}
 
-        set_iter parent;
+        btree_iterator<T> parent;
 
         struct compare{
             bool operator() (const std::shared_ptr<node>& lhs, const std::shared_ptr<node>& rhs ){
@@ -293,12 +293,12 @@ std::pair<typename btree<T>::iterator, bool> btree<T>::insert(const T &elem) {
         if(inset_flag.second == FULL){
             if(inset_flag.first == temp_node_set.get()->nodes.end()){
                 if(temp_node_set.get()->last_child == nullptr){
-                    temp_node_set.get()->last_child = std::make_shared<node_set>(node_set(this->max_size, inset_flag.first));
+                    temp_node_set.get()->last_child = std::make_shared<node_set>(node_set(max_size, btree_iterator<T>{temp_node_set ,inset_flag.first}));
                 }
                 temp_node_set = temp_node_set.get()->last_child;
             }else{
                 if(inset_flag.first->get()->child == nullptr){
-                    inset_flag.first->get()->child = std::make_shared<node_set>(node_set(this->max_size, inset_flag.first));
+                    inset_flag.first->get()->child = std::make_shared<node_set>(node_set(max_size,btree_iterator<T>{temp_node_set, inset_flag.first}));
                 }
                 temp_node_set = inset_flag.first->get()->child;
             }

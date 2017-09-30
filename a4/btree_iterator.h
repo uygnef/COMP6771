@@ -34,7 +34,7 @@ public:
     btree_iterator& operator++();
 
 public:
-    bool next();
+    void next();
 
     node_set pointee;
     iter it;
@@ -60,39 +60,33 @@ bool btree_iterator<T>::operator==(const btree_iterator<T> &other) const {
     return other.pointee == this->pointee && other.it == this->it;
 }
 
-//template<typename T>
-//btree_iterator<T> &btree_iterator::operator++() {
-//    ++it;
-//    auto next = *it;
-//    if(it == pointee.get()->nodes.end()){
-//        if(pointee.get()->last_child != nullptr){
-//            next = pointee.get()->last_child;
-//        }else{
-//
-//        }
-//    }
-//
-//    if(next.get()->child != nullptr){
-//        pointee = next.get()->child;
-//        it = next.get()->child.get()->nodes.begin();
-//    }else{
-//
-//    }
-//
-//
-//    return <#initializer#>;
-//}
-//
-//template<typename T>
-//bool btree_iterator<T>::next() {
-//    ++it;
-//    if(it == pointee.get()->nodes.end()){
-//        if(pointee.get()->last_child == nullptr){
-//            pointee = pointee.get()->parent;
-//            it = pointee
-//        }
-//    }
-//    return false;
-//}
+template<typename T>
+btree_iterator<T> &btree_iterator<T>::operator++() {
+    next();
+    return *this;
+}
+
+template<typename T>
+void btree_iterator<T>::next() {
+    ++it;
+    if(it == pointee.get()->nodes.end()){
+        if(pointee.get()->last_child == nullptr){
+            it = pointee.get()->parent.it;
+            ++it;
+            pointee = pointee.get()->parent.pointee;
+        }else{
+            pointee = pointee.get()->last_child.get();
+            it = pointee.get()->nodes.begin();
+        }
+    }else if(it->get()->child != nullptr){
+        pointee = it->get()->child.get();
+        it = pointee.get()->nodes.begin();
+    }
+
+    while(pointee == nullptr || it == pointee.get()->nodes.end()){
+        next();
+    }
+    return;
+}
 
 #endif
