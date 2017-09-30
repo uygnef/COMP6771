@@ -21,13 +21,13 @@ public:
     typedef T& reference;
     typedef T value_type;
 
-    typedef std::shared_ptr<typename btree<T>::node_set> node_set;
-    typedef typename std::set< std::shared_ptr<typename btree<T>::node> >::iterator iter;
+    typedef std::shared_ptr<typename btree<T>::node_list> node_list;
+    typedef typename std::list< std::shared_ptr<typename btree<T>::node> >::iterator iter;
 
     btree_iterator() = default;
 
     btree_iterator(std::nullptr_t, std::nullptr_t){};
-    btree_iterator(node_set pointee,
+    btree_iterator(node_list pointee,
                    iter index): pointee{pointee}, it{index} {}
 
     bool operator==(const btree_iterator<T>& other) const;
@@ -38,21 +38,21 @@ public:
     void up();
     void down();
 
-    node_set pointee;
+    node_list pointee;
     iter it;
 };
 
 template<typename T>
 class const_btree_iterator {
 public:
-    typedef std::shared_ptr<typename btree<T>::node_set> node_set;
-    typedef typename std::set< std::shared_ptr<typename btree<T>::node> >::const_iterator iter;
+    typedef std::shared_ptr<typename btree<T>::node_list> node_list;
+    typedef typename std::list< std::shared_ptr<typename btree<T>::node> >::const_iterator iter;
 
     const_btree_iterator(std::nullptr_t, std::nullptr_t){};
-    const_btree_iterator(node_set p, iter it): pointee{p}, it{it} {}
+    const_btree_iterator(node_list p, iter it): pointee{p}, it{it} {}
 
 private:
-    node_set pointee;
+    node_list pointee;
     iter it;
 
 };
