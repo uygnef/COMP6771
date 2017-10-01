@@ -11,16 +11,16 @@ int main() {
     btree<long> testContainer(3);
     std::cout << "123";
     for(long i = 0; i < 10; ++i){
-        std::cout << i;
+        std::cout << "\n----"<< i << std::endl;
         testContainer.insert(i);
     }
 
     long s = 3;
     auto a = testContainer.find(s);
-    std::cout << "\n"<< a.it->get()->val;
+    std::cout << "\n find s:"<< a.it->get()->val;
     auto c(testContainer);
     a = c.find(s);
-    std::cout << "\n ----"<< a.it->get()->val;
+    std::cout << "\n ---still finds :-"<< a.it->get()->val;
 
     for(long i = 11; i < 20; ++i){
         std::cout << i;

@@ -37,6 +37,7 @@ public:
     void next();
     void up();
     void down();
+    bool is_last();
 
     node_list pointee;
     iter it;
@@ -56,6 +57,11 @@ private:
     iter it;
 
 };
+
+template<typename T>
+bool btree_iterator<T>::is_last() {
+    return it == --pointee.get()->nodes.end() && pointee.get()->max_size < pointee.get()->nodes.size();
+}
 
 template<typename T>
 bool btree_iterator<T>::operator==(const btree_iterator<T> &other) const {
