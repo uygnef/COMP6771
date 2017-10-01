@@ -325,23 +325,13 @@ std::pair<typename btree<T>::iterator, bool> btree<T>::insert(const T &elem) {
 
 template <typename T>
 typename btree<T>::iterator btree<T>::find(const T &elem) {
-    auto temp_node_list = root;
-    while(true){
-        for(auto i = temp_node_list.get()->nodes.begin(); i != temp_node_list.get()->nodes.end(); ++i){
-            if(elem == i->get()->val){
-                return btree_iterator<T>(temp_node_list, i);
-            }
-
-            // if get last node, search it's child.
-            if(elem < i->get()->val ||
-                    ( temp_node_list.get()->max_size < temp_node_list.get()->nodes.size()
-                      && i == --temp_node_list.get()->nodes.end())){
-                temp_node_list = i->get()->child;
-                if(temp_node_list == nullptr){
-                    return end();
-                }
-                break;
-            }
+    for(auto i = begin(); i != end(); ++i){
+        if(i.it->get()->val == elem){
+            std::cout << "\n have found: "<< i.it->get()->val << "\n";
+            return i;
+        }
+        if(elem < i.it->get()->val){
+            return end();
         }
     }
 }
