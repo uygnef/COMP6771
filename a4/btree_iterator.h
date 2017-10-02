@@ -36,6 +36,12 @@ public:
     btree_iterator& operator++();
 
 public:
+    enum RESULT{
+        FAIL_END = 0,
+        SUCC_END = 1,
+        SUCC = 2
+    };
+
     bool next();
     bool up();
     bool down();
@@ -45,6 +51,9 @@ public:
     inline bool has_child();
     inline bool is_last_node();
 
+    bool move_back();
+    void tree_end();
+    void tree_begin();
     node_list pointee;
     iter it;
 };
@@ -78,51 +87,39 @@ template<typename T>
 btree_iterator<T> &btree_iterator<T>::operator++() {
 
     std::cout << " iter: "<< it->get()->val<<std::endl;
-    if(is_end()){
-        return *this;
-    }
-
-    if(down()){
-        return *this;
-    }
-
-    if(next()){
-        return *this;
-    }
-
-    up();
-    if(is_last_node()){
-        pointee = it->get()->child;
-        it = pointee.get()->nodes.begin();
-    }
+    move_back();
     return *this;
 }
 
 template<typename T>
 bool btree_iterator<T>::next() {
-    if(is_end()){
+    if(is_last_node()){
+        return false;
+    }
+    if(it == --pointee.get()->nodes.end()){
         return false;
     }
     ++it;
-    if(is_last_node()){
-        down();
-    }
     return true;
 }
 
 template<typename T>
 bool btree_iterator<T>::up() {
     if(is_root_list()){
-        it = pointee.get()->nodes.end();
+        tree_end();
         return false;
-    } else {
-        it = pointee.get()->parent.it;
-        pointee = pointee.get()->parent.pointee;
-        while (is_last_node()){
-            it = pointee.get()->parent.it;
-            pointee = pointee.get()->parent.pointee;
+    }
+    it = pointee.get()->parent.it;
+    pointee = pointee.get()->parent.pointee;
+    auto cache_it = it;
+    auto cache_pointee = pointee;
+    while(is_end()) {
+        up();
+        if(is_root_list()) {
+            it = cache_it;
+            pointee = cache_pointee;
+            return false;
         }
-        ++it;
     }
     return true;
 }
@@ -156,6 +153,29 @@ bool btree_iterator<T>::operator!=(const btree_iterator<T> &other) const {
 template<typename T>
 bool btree_iterator<T>::is_last_node() {
     return it == --pointee.get()->nodes.end() &&  pointee.get()->max_size < pointee.get()->nodes.size();
+}
+
+template<typename T>
+bool btree_iterator<T>::move_back() {
+    if (it == --pointee.get()->nodes.end()) {
+        return up();
+    }
+    ++it;
+    while(down());
+    return true;
+}
+
+template<typename T>
+void btree_iterator<T>::tree_end() {
+    if(pointee.get()->nodes.size() == 0){
+        it = pointee.get()->nodes.end();
+    }
+    it = --pointee.get()->nodes.end();
+    while(it->get()->child != nullptr){
+        pointee = it->get()->child;
+        it = --pointee.get()->nodes.end();
+    }
+    it = pointee.get()->nodes.end();
 }
 
 #endif

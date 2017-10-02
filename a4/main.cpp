@@ -36,12 +36,18 @@ int main() {
 //    for(const auto& i: a){
 //        std::cout << i.get()->val;
 //    }
+
     auto d(std::move(c));
     std::cout << "move success\n";
     a = c.find(s);
     std::cout << "move -sd\n";
     if(a == c.end()){
         std::cout <<"not have\n";
+    }
+
+    for(auto i=d.begin(); i != d.end(); ++i){
+        if(i.it->get()->val == 18)
+            std::cout <<"\n go through:"<< i.it->get()->val <<std::endl;
     }
     a = d.find(11);
     std::cout << "\n ----"<< a.it->get()->val;
@@ -57,6 +63,6 @@ int main() {
     ++sfd;
     std::cout << sfd.it->get()->val;
 
-
+    std::cout << "finish\n";
     return 0;
 }

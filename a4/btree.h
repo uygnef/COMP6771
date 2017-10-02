@@ -325,6 +325,7 @@ std::pair<typename btree<T>::iterator, bool> btree<T>::insert(const T &elem) {
 
 template <typename T>
 typename btree<T>::iterator btree<T>::find(const T &elem) {
+    //TODO: more effiect.
     for(auto i = begin(); i != end(); ++i){
         if(i.it->get()->val == elem){
             std::cout << "\n have found: "<< i.it->get()->val << "\n";
@@ -334,11 +335,23 @@ typename btree<T>::iterator btree<T>::find(const T &elem) {
             return end();
         }
     }
+    return end();
 }
 
 template <typename T>
 typename btree<T>::iterator btree<T>::end() const {
-    return btree_iterator<T>(nullptr, nullptr);
+    if(root.get()->nodes.size() == 0){
+        return btree_iterator<T>(root, root.get()->nodes.end());
+    }
+    auto a = root;
+    auto it = a.get()->nodes.end();
+    --it;
+    while(it->get()->child != nullptr){
+        a = it->get()->child;
+        it = a.get()->nodes.end();
+        --it;
+    }
+    return btree_iterator<T>(a, a.get()->nodes.end());
 }
 
 template <typename T>
@@ -364,6 +377,7 @@ typename std::shared_ptr<typename btree<T>::node_list> btree<T>::copy_nodes(cons
             if (!(origin.max_size < origin.nodes.size() && i == -- origin.nodes.end())){
                 new_node.get()->val = i->get()->val;
             }
+            ret.get()->nodes.push_back(new_node);
             new_node.get()->child = copy_nodes(*i->get()->child.get());
         }
     }
@@ -401,14 +415,32 @@ btree<T> &btree<T>::operator=(btree<T> &&rhs) {
 
 template <typename T>
 typename btree<T>::iterator btree<T>::begin() {
-    return btree_iterator<T>(root ,root.get()->nodes.begin());
+    auto a = root;
+    if(a.get()->nodes.size() == 0){
+        return btree_iterator<T>(a ,a.get()->nodes.begin());
+    }
+    while( a.get()->nodes.begin()->get()->child != nullptr){
+        a = a.get()->nodes.begin()->get()->child;
+    }
+    return btree_iterator<T>(a ,a.get()->nodes.begin());
 }
 
 
 
 template <typename T>
 typename btree<T>::iterator btree<T>::end() {
-    return btree_iterator<T>(root, root.get()->nodes.end());
+    auto end = root;
+    while(true){
+        if(end.get()->nodes.size() == 0){
+            return btree_iterator<T>(end, end.get()->nodes.end());
+        }
+        auto it = end.get()->nodes.end();
+        --it;
+        if(it->get()->child == nullptr){
+            return btree_iterator<T>(end, end.get()->nodes.end());
+        }
+        end = it->get()->child;
+    }
 }
 
 
