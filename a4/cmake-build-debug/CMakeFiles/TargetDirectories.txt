@@ -1,3 +1,0 @@
-/home/yu/6771/a4/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/yu/6771/a4/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/yu/6771/a4/cmake-build-debug/CMakeFiles/a4.dir
