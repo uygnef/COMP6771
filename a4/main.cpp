@@ -11,16 +11,16 @@ int main() {
     btree<long> testContainer(3);
     std::cout << "123";
     for(long i = 0; i < 10; ++i){
-        std::cout << i;
+        std::cout << "\n----"<< i << std::endl;
         testContainer.insert(i);
     }
 
     long s = 3;
     auto a = testContainer.find(s);
-    std::cout << "\n"<< a.it->get()->val;
+    std::cout << "\n find s:"<< a.it->get()->val;
     auto c(testContainer);
     a = c.find(s);
-    std::cout << "\n ----"<< a.it->get()->val;
+    std::cout << "\n ---still finds :-"<< a.it->get()->val;
 
     for(long i = 11; i < 20; ++i){
         std::cout << i;
@@ -36,12 +36,18 @@ int main() {
 //    for(const auto& i: a){
 //        std::cout << i.get()->val;
 //    }
+
     auto d(std::move(c));
     std::cout << "move success\n";
     a = c.find(s);
     std::cout << "move -sd\n";
     if(a == c.end()){
         std::cout <<"not have\n";
+    }
+
+    for(auto i=d.begin(); i != d.end(); ++i){
+        if(i.it->get()->val == 18)
+            std::cout <<"\n go through:"<< i.it->get()->val <<std::endl;
     }
     a = d.find(11);
     std::cout << "\n ----"<< a.it->get()->val;
@@ -57,6 +63,6 @@ int main() {
     ++sfd;
     std::cout << sfd.it->get()->val;
 
-
+    std::cout << "finish\n";
     return 0;
 }
