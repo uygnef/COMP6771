@@ -16,10 +16,10 @@ template<typename T> class btree;
 template<typename T>
 class btree_iterator: std::iterator< std::bidirectional_iterator_tag, T>{
 public:
-    typedef std::bidirectional_iterator_tag  iterator_category;
-    typedef T* pointer;
-    typedef T& reference;
-    typedef T value_type;
+//    typedef std::bidirectional_iterator_tag  iterator_category;
+//    typedef T* pointer;
+//    typedef T& reference;
+//    typedef T value_type;
 
     typedef std::shared_ptr<typename btree<T>::node_list> node_list;
     typedef typename std::list< std::shared_ptr<typename btree<T>::node> >::iterator iter;
@@ -34,13 +34,15 @@ public:
     bool operator!=(const btree_iterator<T>& other) const;
 
     btree_iterator& operator++();
+    btree_iterator& operator--();
+
 
 public:
-    enum RESULT{
-        FAIL_END = 0,
-        SUCC_END = 1,
-        SUCC = 2
-    };
+//    enum RESULT{
+//        FAIL_END = 0,
+//        SUCC_END = 1,
+//        SUCC = 2
+//    };
 
     bool next();
     bool up();
@@ -54,6 +56,7 @@ public:
     bool move_back();
     void tree_end();
     void tree_begin();
+
     node_list pointee;
     iter it;
 };
@@ -177,5 +180,16 @@ void btree_iterator<T>::tree_end() {
     }
     it = pointee.get()->nodes.end();
 }
+
+
+
+template<typename T>
+btree_iterator<T> &btree_iterator<T>::operator--() {
+
+}
+
+template<typename T>
+void btree_iterator<T>::tree_begin() {
+    }
 
 #endif
