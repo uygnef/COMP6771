@@ -123,8 +123,8 @@ class btree {
    * -- crend() 
    */
 
-    iterator begin();
-    iterator end();
+    iterator begin() const;
+    inline iterator end() const{ return btree_iterator<T>(this, nullptr, 0);}
   
   /**
     * Returns an iterator to the matching element, or whatever 
@@ -140,7 +140,7 @@ class btree {
     * @return an iterator to the matching element, or whatever the
     *         non-const end() returns if no such match was ever found.
     */
-    iterator find(const T& elem);
+    iterator find(const T& elem) const;
     
   /**
     * Identical in functionality to the non-const version of find, 
@@ -201,12 +201,12 @@ private:
         std::vector<T> elems;
         std::vector<std::shared_ptr<Node>> children;
         size_t max_size;
-        std::weak_ptr<Node> parent;
+        iterator parent;
 
         Node(size_t max_size): max_size{max_size}, children(1), elems{}{}  //chilren size = elems size + 1
         Node(T val, size_t max_size): elems{val}, max_size{max_size}, children(2){}
-        Node(T val, std::shared_ptr<Node> parent, size_t max_size):
-                elems{val}, parent{std::weak_ptr<Node>(parent)}, max_size{max_size}, children(2){}
+        Node(T val, iterator parent, size_t max_size):
+                elems{val}, parent{parent}, max_size{max_size}, children(2){}
 
         ~Node(){
             elems.clear();
@@ -250,11 +250,10 @@ private:
     }
 
     void copy_helper(const std::shared_ptr<Node>& old, std::shared_ptr<Node>& new_list);
+    iterator pre_end();
 
     size_t max_size;
     std::shared_ptr<Node> root;
-    T tree_begin;
-    T tree_end;
 };
 
 template <typename T>
@@ -281,19 +280,20 @@ std::pair<btree_iterator<T>, bool> btree<T>::insert(const T &elem) {
         if(temp_node.get()->is_full()){
             auto result_pair = temp_node.get()->find(elem);
             if(result_pair.first) {
-                return std::make_pair(btree_iterator<T>(temp_node, result_pair.second), false);
+                return std::make_pair(btree_iterator<T>(this, temp_node, result_pair.second), false);
             }
             if(temp_node.get()->children[result_pair.second] == nullptr){
                 auto child_node = std::make_shared<Node>(Node(elem, max_size));
                 temp_node.get()->children[result_pair.second] = child_node;
-                btree_iterator<T> iter(temp_node->children[result_pair.second], 0);
+                child_node.get()->parent = btree_iterator<T>(this, temp_node, result_pair.second);
+                btree_iterator<T> iter(this, temp_node->children[result_pair.second], 0);
                 return std::make_pair(iter, true);
             }
             temp_node = temp_node->children[result_pair.second];
         }else{
             auto result_pair = temp_node.get()->find(elem);
             if(result_pair.first){
-                return std::make_pair(btree_iterator<T>(temp_node, result_pair.second), false);
+                return std::make_pair(btree_iterator<T>(this, temp_node, result_pair.second), false);
             }
             const auto& temp_iter = temp_node.get()->elems.begin() + result_pair.second;
             temp_node.get()->elems.insert(temp_iter, elem);
@@ -302,7 +302,7 @@ std::pair<btree_iterator<T>, bool> btree<T>::insert(const T &elem) {
              *   we do not need to add new elem's child into right place.
              */
             temp_node.get()->children.push_back(nullptr);
-            return std::make_pair(btree_iterator<T>(temp_node, result_pair.second), true);
+            return std::make_pair(btree_iterator<T>(this ,temp_node, result_pair.second), true);
         }
     }
 }
@@ -326,7 +326,7 @@ void btree<T>::copy_helper(const std::shared_ptr<Node>& old, std::shared_ptr<Nod
             new_list.get()->copy_child_insert(i, nullptr);
         } else {
             auto new_child_node = std::make_shared<Node>(Node(old.get()->max_size));
-            new_child_node.get()->parent = std::weak_ptr<Node>(new_list);
+            new_child_node.get()->parent = btree_iterator<T>(this, new_list, i);
             new_list.get()->copy_child_insert(i, new_child_node);
             copy_helper(old.get()->children[i], new_child_node);
         }
@@ -370,13 +370,13 @@ btree<T> &btree<T>::operator=(btree<T> &&rhs) {
 }
 
 template <typename T>
-typename btree<T>::iterator btree<T>::find(const T &elem) {
+typename btree<T>::iterator btree<T>::find(const T &elem) const {
     auto temp_node = root;
     size_t i;
     while(temp_node != nullptr){
         for(i = 0; i < temp_node.get()->elems.size(); ++i){
             if(temp_node.get()->elems[i] == elem){
-                return btree_iterator<T>(temp_node, i);
+                return btree_iterator<T>(this, temp_node, i);
             }
             if(elem < temp_node.get()->elems[i]){
                 break;
@@ -385,11 +385,11 @@ typename btree<T>::iterator btree<T>::find(const T &elem) {
         temp_node = temp_node.get()->children[i];
     }
 
-    return btree::iterator(std::shared_ptr<Node>(), 0);
+    return btree::iterator(this, std::shared_ptr<Node>(), 0);
 }
 
 template <typename T>
-typename btree<T>::iterator btree<T>::begin() {
+typename btree<T>::iterator btree<T>::begin() const {
     auto temp_node = root;
     auto pre_temp = root;
     while(temp_node != nullptr){
@@ -397,18 +397,18 @@ typename btree<T>::iterator btree<T>::begin() {
         temp_node = temp_node.get()->children[0];
     }
 
-    return btree_iterator<T>(pre_temp, 0);
+    return btree_iterator<T>(this, pre_temp, 0);
 }
 
 template <typename T>
-typename btree<T>::iterator btree<T>::end() {
+typename btree<T>::iterator btree<T>::pre_end() {
     auto temp_node = root;
     auto last_child_val = temp_node.get()->children[temp_node.get()->children.size()-1];
     while(last_child_val != nullptr){
         temp_node = last_child_val;
         last_child_val = temp_node.get()->children[temp_node.get()->children.size()-1];
     }
-    return btree_iterator<T>(temp_node, temp_node.get()->elems.size());
+    return btree_iterator<T>(this, temp_node, temp_node.get()->elems.size()-1 );
 }
 
 //template <typename T>
