@@ -19,10 +19,12 @@ template<typename T> class const_btree_iterator;
 
 template<typename T>
 class btree_iterator{
+
 public:
     btree_iterator(std::shared_ptr<typename btree<T>::Node> n, size_t i): node{n}, index{i}{}
-
     T& operator*();
+    bool operator==(btree_iterator rhs);
+    
 
 private:
     std::shared_ptr<typename btree<T>::Node> node;
@@ -34,6 +36,11 @@ private:
 template <typename T>
 T &btree_iterator<T>::operator*() {
     return node.get()->elems[index];
+}
+
+template <typename T>
+bool btree_iterator<T>::operator==(btree_iterator<T> rhs) {
+    return node.get() == rhs.node.get() && index == rhs.index;
 }
 
 #endif

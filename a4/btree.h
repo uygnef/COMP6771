@@ -17,6 +17,7 @@
 #include <memory>
 //#include <bits/shared_ptr.h>
 #include <exception>
+#include <queue>
 
 // we better include the iterator
 #include "btree_iterator.h"
@@ -43,7 +44,9 @@ class btree {
    * @param maxNodeElems the maximum number of elements
    *        that can be stored in each B-Tree node
    */
-  btree(size_t maxNodeElems = 40): max_size{maxNodeElems}{ root = std::make_shared<Node>(Node(maxNodeElems));}
+  btree(size_t maxNodeElems = 40): max_size{maxNodeElems}{
+      root = std::make_shared<Node>(Node(maxNodeElems));
+  }
 
   /**
    * The copy constructor and  assignment operator.
@@ -68,7 +71,7 @@ class btree {
    *
    * @param original an rvalue reference to a B-Tree object
    */
-//  btree(btree<T>&& original);
+  btree(btree<T>&& original) noexcept;
   
   
   /** 
@@ -77,7 +80,7 @@ class btree {
    *
    * @param rhs a const lvalue reference to a B-Tree object
    */
-//  btree<T>& operator=(const btree<T>& rhs);
+  btree<T>& operator=(const btree<T>& rhs);
 
   /** 
    * Move assignment
@@ -86,7 +89,7 @@ class btree {
    *
    * @param rhs a const reference to a B-Tree object
    */
-//  btree<T>& operator=(btree<T>&& rhs);
+  btree<T>& operator=(btree<T>&& rhs);
 
   /**
    * Puts a breadth-first traversal of the B-Tree onto the output
@@ -97,7 +100,16 @@ class btree {
    * @param tree a const reference to a B-Tree object
    * @return a reference to os
    */
-//  friend std::ostream& operator<< <T> (std::ostream& os, const btree<T>& tree);
+  friend std::ostream& operator<< (std::ostream& os, const btree<T>& tree){
+      std::queue<std::shared_ptr<Node>> queue;
+      queue.push(tree.root);
+      while(!queue.empty()){
+          tree.print_tree(os, queue);
+      }
+      return os;
+  };
+
+
 
   /**
    * The following can go here
@@ -110,6 +122,9 @@ class btree {
    * -- crbegin() 
    * -- crend() 
    */
+
+    iterator begin();
+    iterator end();
   
   /**
     * Returns an iterator to the matching element, or whatever 
@@ -125,7 +140,7 @@ class btree {
     * @return an iterator to the matching element, or whatever the
     *         non-const end() returns if no such match was ever found.
     */
- // iterator find(const T& elem);
+    iterator find(const T& elem);
     
   /**
     * Identical in functionality to the non-const version of find, 
@@ -188,7 +203,7 @@ private:
         size_t max_size;
         std::weak_ptr<Node> parent;
 
-        Node(size_t max_size): max_size{max_size}, children(1){}  //chilren size = elems size + 1
+        Node(size_t max_size): max_size{max_size}, children(1), elems{}{}  //chilren size = elems size + 1
         Node(T val, size_t max_size): elems{val}, max_size{max_size}, children(2){}
         Node(T val, std::shared_ptr<Node> parent, size_t max_size):
                 elems{val}, parent{std::weak_ptr<Node>(parent)}, max_size{max_size}, children(2){}
@@ -200,6 +215,8 @@ private:
 
         inline bool is_full(){ return elems.size() == max_size;}
         inline size_t size(){ return elems.size();}
+
+        //copy value if vector is full, push back.
         inline void copy_elem_insert(const size_t& i, T val){
             if(i < size()){
                 elems[i] = val;
@@ -216,15 +233,28 @@ private:
         }
 
         std::pair<bool, size_t> find(T);
-
-
-        void insert(T, size_t);
     };
+
+    void print_tree(std::ostream& os, std::queue<typename std::shared_ptr<Node>>& node_queue) const {
+
+        auto now_pointer = node_queue.front();
+        node_queue.pop();
+        for(const auto& i: now_pointer.get()->elems){
+            os << i << " ";
+        }
+        for(const auto& i: now_pointer.get()->children){
+            if(i != nullptr){
+                node_queue.push(i);
+            }
+        }
+    }
 
     void copy_helper(const std::shared_ptr<Node>& old, std::shared_ptr<Node>& new_list);
 
     size_t max_size;
     std::shared_ptr<Node> root;
+    T tree_begin;
+    T tree_end;
 };
 
 template <typename T>
@@ -234,18 +264,14 @@ std::pair<bool, size_t> btree<T>::Node::find(T key) {
         if(elems[i] == key){
             return std::make_pair(true, i);
         }
-        if(key < i){
+        if(key < elems[i]){
             return std::make_pair(false, i);
         }
     }
+ //   std::cout << "find key: "<< key << " position: " << i << std::endl;
     return std::make_pair(false, i);
 }
 
-template <typename T>
-void btree<T>::Node::insert(T key, size_t it) {
-    elems.insert(elems.begin()+it, key);
-
-}
 
 
 template <typename T>
@@ -286,7 +312,6 @@ btree<T>::btree(const btree<T> &original) {
     max_size = original.max_size;
     root = std::make_shared<Node>(Node(max_size));
     copy_helper(original.root, root);
-
 }
 
 template <typename T>
@@ -308,6 +333,88 @@ void btree<T>::copy_helper(const std::shared_ptr<Node>& old, std::shared_ptr<Nod
     }
 }
 
+
+template <typename T>
+btree<T>::btree(btree<T> &&original) noexcept {
+    root = std::make_shared<Node>(Node(0));
+    max_size = 0;
+    std::swap(original.root, root);
+    std::swap(original.max_size, max_size);
+}
+
+template <typename T>
+btree<T> &btree<T>::operator=(const btree<T> &rhs) {
+    if(this == &rhs){
+        return *this;
+    }
+    root.get()->elems.clear();
+    root.get()->children.clear();
+    max_size = rhs.max_size;
+    copy_helper(root, rhs.root);
+    return *this;
+}
+
+template <typename T>
+btree<T> &btree<T>::operator=(btree<T> &&rhs) {
+    if(this == &rhs){
+        return *this;
+    }
+    root.get()->elems.clear();
+    root.get()->children.clear();
+    max_size = 0;
+
+    std::swap(root, rhs.root);
+    std::swap(max_size, rhs.max_size);
+
+    return *this;
+}
+
+template <typename T>
+typename btree<T>::iterator btree<T>::find(const T &elem) {
+    auto temp_node = root;
+    size_t i;
+    while(temp_node != nullptr){
+        for(i = 0; i < temp_node.get()->elems.size(); ++i){
+            if(temp_node.get()->elems[i] == elem){
+                return btree_iterator<T>(temp_node, i);
+            }
+            if(elem < temp_node.get()->elems[i]){
+                break;
+            }
+        }
+        temp_node = temp_node.get()->children[i];
+    }
+
+    return btree::iterator(std::shared_ptr<Node>(), 0);
+}
+
+template <typename T>
+typename btree<T>::iterator btree<T>::begin() {
+    auto temp_node = root;
+    auto pre_temp = root;
+    while(temp_node != nullptr){
+        pre_temp = temp_node;
+        temp_node = temp_node.get()->children[0];
+    }
+
+    return btree_iterator<T>(pre_temp, 0);
+}
+
+template <typename T>
+typename btree<T>::iterator btree<T>::end() {
+    auto temp_node = root;
+    auto last_child_val = temp_node.get()->children[temp_node.get()->children.size()-1];
+    while(last_child_val != nullptr){
+        temp_node = last_child_val;
+        last_child_val = temp_node.get()->children[temp_node.get()->children.size()-1];
+    }
+    return btree_iterator<T>(temp_node, temp_node.get()->elems.size());
+}
+
+//template <typename T>
+//const btree::iterator btree::begin() {
+//    return btree::iterator(std::shared_ptr<Node>(), 0);
+//}
 
 
 #endif
