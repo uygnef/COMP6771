@@ -71,7 +71,7 @@ void insertRandomNumbers(btree<long>& testContainer, set<long>& stableContainer,
   cout << "Let's insert up to " << size << " numbers." << endl;
   for (size_t i = 0; i < size; i++) {
     long rndNum = getRandom(kMinInteger, kMaxInteger);
-    pair<btree<long>::iterator, bool> result = testContainer.insert(rndNum);
+    std::pair<btree<long>::iterator, bool> result = testContainer.insert(rndNum);
     if (result.second) stableContainer.insert(rndNum);
     if ((i + 1) % 100000 == 0) 
       cout << "Inserted some " << (i + 1) << " numbers thus far." << endl;
