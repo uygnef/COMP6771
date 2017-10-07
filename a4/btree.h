@@ -16,6 +16,7 @@
 #include <vector>
 #include <memory>
 //#include <bits/shared_ptr.h>
+#include <exception>
 
 // we better include the iterator
 #include "btree_iterator.h"
@@ -28,7 +29,7 @@ class btree {
  public:
   /** Hmm, need some iterator typedefs here... friends? **/
     friend class btree_iterator<T>;
-    using iterator = btree_iterator;
+    using iterator = btree_iterator<T>;
   /**
    * Constructs an empty btree.  Note that
    * the elements stored in your btree must
@@ -42,7 +43,7 @@ class btree {
    * @param maxNodeElems the maximum number of elements
    *        that can be stored in each B-Tree node
    */
-  btree(size_t maxNodeElems = 40): root{maxNodeElems}, max_size{maxNodeElems}{}
+  btree(size_t maxNodeElems = 40): max_size{maxNodeElems}{ root = std::make_shared<Node>(Node(maxNodeElems));}
 
   /**
    * The copy constructor and  assignment operator.
@@ -59,7 +60,7 @@ class btree {
    *
    * @param original a const lvalue reference to a B-Tree object
    */
-//  btree(const btree<T>& original);
+  btree(const btree<T>& original);
 
   /** 
    * Move constructor
@@ -173,9 +174,11 @@ class btree {
     * Check that your implementation does not leak memory!
     */
   ~btree(){
+      max_size = 0;
       root.get()->elems.clear();
       root.get()->children.clear();
   };
+
 
 private:
     // The details of your implementation go here
@@ -185,10 +188,10 @@ private:
         size_t max_size;
         std::weak_ptr<Node> parent;
 
-        Node(size_t max_size): max_size{max_size}{}
-        Node(T val, size_t max_size): elems{val}, max_size{max_size}, children{nullptr, nullptr}{}
+        Node(size_t max_size): max_size{max_size}, children(1){}  //chilren size = elems size + 1
+        Node(T val, size_t max_size): elems{val}, max_size{max_size}, children(2){}
         Node(T val, std::shared_ptr<Node> parent, size_t max_size):
-                elems{val}, parent{std::weak_ptr<Node>(parent)}, max_size{max_size}, children{nullptr, nullptr}{}
+                elems{val}, parent{std::weak_ptr<Node>(parent)}, max_size{max_size}, children(2){}
 
         ~Node(){
             elems.clear();
@@ -197,10 +200,28 @@ private:
 
         inline bool is_full(){ return elems.size() == max_size;}
         inline size_t size(){ return elems.size();}
+        inline void copy_elem_insert(const size_t& i, T val){
+            if(i < size()){
+                elems[i] = val;
+            }else{
+                elems.push_back(val);
+            }
+        }
+        inline void copy_child_insert(const size_t& i, const std::shared_ptr<Node>& ch){
+            if(i < children.size()){
+                children[i] = ch;
+            }else{
+                children.push_back(ch);
+            }
+        }
+
         std::pair<bool, size_t> find(T);
+
 
         void insert(T, size_t);
     };
+
+    void copy_helper(const std::shared_ptr<Node>& old, std::shared_ptr<Node>& new_list);
 
     size_t max_size;
     std::shared_ptr<Node> root;
@@ -223,34 +244,70 @@ std::pair<bool, size_t> btree<T>::Node::find(T key) {
 template <typename T>
 void btree<T>::Node::insert(T key, size_t it) {
     elems.insert(elems.begin()+it, key);
-    
+
 }
 
 
 template <typename T>
 std::pair<btree_iterator<T>, bool> btree<T>::insert(const T &elem) {
-    auto temp_node = root.get();
+    auto temp_node = root;
     while(true){
-        if(temp_node->is_full()){
-            auto result_pair = temp_node->find(elem);
-            if(result_pair.first){
-                return std::make_pair(btree_iterator(temp_node, result_pair.second), false);
-            }else{
-                if(temp_node->children[result_pair.second] == nullptr){
-                    temp_node->children[result_pair.second] = btree<T>::Node(elem, max_size);
-                    btree_iterator iter(temp_node->children[result_pair.second], 0);
-                    return std::make_pair(iter, true);
-                }
-                temp_node = temp_node->children[result_pair.second];
+        if(temp_node.get()->is_full()){
+            auto result_pair = temp_node.get()->find(elem);
+            if(result_pair.first) {
+                return std::make_pair(btree_iterator<T>(temp_node, result_pair.second), false);
             }
+            if(temp_node.get()->children[result_pair.second] == nullptr){
+                auto child_node = std::make_shared<Node>(Node(elem, max_size));
+                temp_node.get()->children[result_pair.second] = child_node;
+                btree_iterator<T> iter(temp_node->children[result_pair.second], 0);
+                return std::make_pair(iter, true);
+            }
+            temp_node = temp_node->children[result_pair.second];
         }else{
-            auto result_pair = temp_node->find(elem);
-
+            auto result_pair = temp_node.get()->find(elem);
+            if(result_pair.first){
+                return std::make_pair(btree_iterator<T>(temp_node, result_pair.second), false);
+            }
+            const auto& temp_iter = temp_node.get()->elems.begin() + result_pair.second;
+            temp_node.get()->elems.insert(temp_iter, elem);
+            /*
+             * Node can not be remove, so if parent node is not full, all children of this not are nullptr.
+             *   we do not need to add new elem's child into right place.
+             */
+            temp_node.get()->children.push_back(nullptr);
+            return std::make_pair(btree_iterator<T>(temp_node, result_pair.second), true);
         }
     }
-
-    return std::pair<btree_iterator, bool>();
 }
+
+template <typename T>
+btree<T>::btree(const btree<T> &original) {
+    max_size = original.max_size;
+    root = std::make_shared<Node>(Node(max_size));
+    copy_helper(original.root, root);
+
+}
+
+template <typename T>
+void btree<T>::copy_helper(const std::shared_ptr<Node>& old, std::shared_ptr<Node>& new_list) {
+    size_t i;
+    for(i = 0; i < old.get()->elems.size(); ++i){
+        new_list.get()->copy_elem_insert(i, old.get()->elems[i]);
+    }
+
+    for(i=0; i < old.get()->children.size(); ++i){
+        if(old.get()->children[i] == nullptr){
+            new_list.get()->copy_child_insert(i, nullptr);
+        } else {
+            auto new_child_node = std::make_shared<Node>(Node(old.get()->max_size));
+            new_child_node.get()->parent = std::weak_ptr<Node>(new_list);
+            new_list.get()->copy_child_insert(i, new_child_node);
+            copy_helper(old.get()->children[i], new_child_node);
+        }
+    }
+}
+
 
 
 #endif
