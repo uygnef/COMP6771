@@ -89,7 +89,7 @@ void insertRandomNumbers(btree<long>& testContainer, set<long>& stableContainer,
  * an integer in one container and not the other, then 
  * we bail immediately and return one to express failure.
  **/
-bool confirmEverythingMatches(const btree<long>& testContainer, const set<long>& stableContainer) {
+bool confirmEverythingMatches(btree<long>& testContainer, set<long>& stableContainer) {
   cout << "Confirms the btree and the set " 
           "contain exactly the same values..." << endl;
   for (long i = kMinInteger; i <= kMaxInteger; i++) {

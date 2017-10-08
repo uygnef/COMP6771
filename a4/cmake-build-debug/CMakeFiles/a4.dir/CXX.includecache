@@ -6,6 +6,16 @@
 
 #IncludeRegexTransform: 
 
+/home/yu/6771/a4/allTests.cpp
+iostream
+-
+random
+-
+mattTests.h
+/home/yu/6771/a4/mattTests.h
+suite.h
+/home/yu/6771/a4/suite.h
+
 /home/yu/6771/a4/btree.h
 iostream
 -
@@ -32,25 +42,29 @@ memory
 btree.h
 /home/yu/6771/a4/btree.h
 
-/home/yu/6771/a4/test01.cpp
-algorithm
+/home/yu/6771/a4/mattTests.h
+functional
 -
-cstddef
--
-cstdlib
--
-ctime
--
-fstream
--
-iostream
+random
 -
 set
 -
-string
--
 utility
+-
+limits
+-
+simulator.h
+/home/yu/6771/a4/simulator.h
+
+/home/yu/6771/a4/simulator.h
+set
+-
+cassert
 -
 btree.h
 /home/yu/6771/a4/btree.h
+
+/home/yu/6771/a4/suite.h
+random
+-
 

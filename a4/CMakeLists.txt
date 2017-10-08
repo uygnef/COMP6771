@@ -3,5 +3,5 @@ project(a4)
 
 set(CMAKE_CXX_STANDARD 14)
 
-set(SOURCE_FILES test01.cpp btree.h btree_iterator.h)
+set(SOURCE_FILES allTests.cpp btree.h btree_iterator.h)
 add_executable(a4 ${SOURCE_FILES})

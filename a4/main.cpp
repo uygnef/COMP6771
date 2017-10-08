@@ -12,6 +12,7 @@ int main() {
         std::cout << sa << " ";
         a.insert(sa);
     }
+    auto dsd = a.find(3);
     std::cout << std::endl;
 
     std::cout << a << std::endl;

@@ -57,38 +57,38 @@ include CMakeFiles/a4.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/a4.dir/flags.make
 
-CMakeFiles/a4.dir/test01.cpp.o: CMakeFiles/a4.dir/flags.make
-CMakeFiles/a4.dir/test01.cpp.o: ../test01.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yu/6771/a4/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/a4.dir/test01.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/a4.dir/test01.cpp.o -c /home/yu/6771/a4/test01.cpp
+CMakeFiles/a4.dir/allTests.cpp.o: CMakeFiles/a4.dir/flags.make
+CMakeFiles/a4.dir/allTests.cpp.o: ../allTests.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yu/6771/a4/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/a4.dir/allTests.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/a4.dir/allTests.cpp.o -c /home/yu/6771/a4/allTests.cpp
 
-CMakeFiles/a4.dir/test01.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/a4.dir/test01.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/yu/6771/a4/test01.cpp > CMakeFiles/a4.dir/test01.cpp.i
+CMakeFiles/a4.dir/allTests.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/a4.dir/allTests.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/yu/6771/a4/allTests.cpp > CMakeFiles/a4.dir/allTests.cpp.i
 
-CMakeFiles/a4.dir/test01.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/a4.dir/test01.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/yu/6771/a4/test01.cpp -o CMakeFiles/a4.dir/test01.cpp.s
+CMakeFiles/a4.dir/allTests.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/a4.dir/allTests.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/yu/6771/a4/allTests.cpp -o CMakeFiles/a4.dir/allTests.cpp.s
 
-CMakeFiles/a4.dir/test01.cpp.o.requires:
+CMakeFiles/a4.dir/allTests.cpp.o.requires:
 
-.PHONY : CMakeFiles/a4.dir/test01.cpp.o.requires
+.PHONY : CMakeFiles/a4.dir/allTests.cpp.o.requires
 
-CMakeFiles/a4.dir/test01.cpp.o.provides: CMakeFiles/a4.dir/test01.cpp.o.requires
-	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/test01.cpp.o.provides.build
-.PHONY : CMakeFiles/a4.dir/test01.cpp.o.provides
+CMakeFiles/a4.dir/allTests.cpp.o.provides: CMakeFiles/a4.dir/allTests.cpp.o.requires
+	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/allTests.cpp.o.provides.build
+.PHONY : CMakeFiles/a4.dir/allTests.cpp.o.provides
 
-CMakeFiles/a4.dir/test01.cpp.o.provides.build: CMakeFiles/a4.dir/test01.cpp.o
+CMakeFiles/a4.dir/allTests.cpp.o.provides.build: CMakeFiles/a4.dir/allTests.cpp.o
 
 
 # Object files for target a4
 a4_OBJECTS = \
-"CMakeFiles/a4.dir/test01.cpp.o"
+"CMakeFiles/a4.dir/allTests.cpp.o"
 
 # External object files for target a4
 a4_EXTERNAL_OBJECTS =
 
-a4: CMakeFiles/a4.dir/test01.cpp.o
+a4: CMakeFiles/a4.dir/allTests.cpp.o
 a4: CMakeFiles/a4.dir/build.make
 a4: CMakeFiles/a4.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/yu/6771/a4/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable a4"
@@ -99,7 +99,7 @@ CMakeFiles/a4.dir/build: a4
 
 .PHONY : CMakeFiles/a4.dir/build
 
-CMakeFiles/a4.dir/requires: CMakeFiles/a4.dir/test01.cpp.o.requires
+CMakeFiles/a4.dir/requires: CMakeFiles/a4.dir/allTests.cpp.o.requires
 
 .PHONY : CMakeFiles/a4.dir/requires
 

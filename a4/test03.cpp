@@ -31,7 +31,7 @@ int main(void) {
   bti.insert(3);
   bti.insert(4);
 
-  find_in_tree(bti, 100);
+  find_in_tree(bti, 10);
 
   return 0;
 }
