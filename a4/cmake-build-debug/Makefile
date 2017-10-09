@@ -150,6 +150,33 @@ allTests.cpp.s:
 	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/allTests.cpp.s
 .PHONY : allTests.cpp.s
 
+cseTests.o: cseTests.cpp.o
+
+.PHONY : cseTests.o
+
+# target to build an object file
+cseTests.cpp.o:
+	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/cseTests.cpp.o
+.PHONY : cseTests.cpp.o
+
+cseTests.i: cseTests.cpp.i
+
+.PHONY : cseTests.i
+
+# target to preprocess a source file
+cseTests.cpp.i:
+	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/cseTests.cpp.i
+.PHONY : cseTests.cpp.i
+
+cseTests.s: cseTests.cpp.s
+
+.PHONY : cseTests.s
+
+# target to generate assembly for a file
+cseTests.cpp.s:
+	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/cseTests.cpp.s
+.PHONY : cseTests.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -162,6 +189,9 @@ help:
 	@echo "... allTests.o"
 	@echo "... allTests.i"
 	@echo "... allTests.s"
+	@echo "... cseTests.o"
+	@echo "... cseTests.i"
+	@echo "... cseTests.s"
 .PHONY : help
 
 

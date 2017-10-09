@@ -211,46 +211,47 @@ class btree {
   };
 
 
+// The details of your implementation go here
+struct Node{
+    friend btree;
+    std::vector<T> elems;
+    std::vector<std::shared_ptr<Node>> children;
+    size_t max_size;
+    iterator parent;
+
+    Node(size_t max_size): max_size{max_size}, children(1), elems{}{}  //chilren size = elems size + 1
+    Node(T val, size_t max_size): elems{val}, max_size{max_size}, children(2){}
+    Node(T val, iterator parent, size_t max_size):
+            elems{val}, parent{parent}, max_size{max_size}, children(2){}
+
+    ~Node(){
+        elems.clear();
+        children.clear();
+    }
+
+    inline bool is_full(){ return elems.size() == max_size;}
+    inline size_t size(){ return elems.size();}
+
+    //copy value if vector is full, push back.
+    inline void copy_elem_insert(const size_t& i, T val){
+        if(i < size()){
+            elems[i] = val;
+        }else{
+            elems.push_back(val);
+        }
+    }
+    inline void copy_child_insert(const size_t& i, const std::shared_ptr<Node>& ch){
+        if(i < children.size()){
+            children[i] = ch;
+        }else{
+            children.push_back(ch);
+        }
+    }
+
+    std::pair<bool, size_t> find(T) const;
+};
+
 private:
-    // The details of your implementation go here
-    struct Node{
-        friend btree;
-        std::vector<T> elems;
-        std::vector<std::shared_ptr<Node>> children;
-        size_t max_size;
-        iterator parent;
-
-        Node(size_t max_size): max_size{max_size}, children(1), elems{}{}  //chilren size = elems size + 1
-        Node(T val, size_t max_size): elems{val}, max_size{max_size}, children(2){}
-        Node(T val, iterator parent, size_t max_size):
-                elems{val}, parent{parent}, max_size{max_size}, children(2){}
-
-        ~Node(){
-            elems.clear();
-            children.clear();
-        }
-
-        inline bool is_full(){ return elems.size() == max_size;}
-        inline size_t size(){ return elems.size();}
-
-        //copy value if vector is full, push back.
-        inline void copy_elem_insert(const size_t& i, T val){
-            if(i < size()){
-                elems[i] = val;
-            }else{
-                elems.push_back(val);
-            }
-        }
-        inline void copy_child_insert(const size_t& i, const std::shared_ptr<Node>& ch){
-            if(i < children.size()){
-                children[i] = ch;
-            }else{
-                children.push_back(ch);
-            }
-        }
-
-        std::pair<bool, size_t> find(T) const;
-    };
 
     void print_tree(std::ostream& os, std::queue<typename std::shared_ptr<Node>>& node_queue) const {
 

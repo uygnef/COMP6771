@@ -22,7 +22,7 @@ struct Identity{
 template<typename T, template <typename U> class Constness> class btree_iterator;
 
 template <typename T, template <typename> class C>
-bool operator==(const btree_iterator<T, C>& lhs, const btree_iterator   <T, C>& other);
+bool operator==(const btree_iterator<T, C>& lhs, const btree_iterator<T, C>& rhs);
 
 template<typename Base, template <typename U> class Constness = Identity>
 class btree_iterator{
@@ -38,7 +38,7 @@ public:
 //    friend btree<Base>;
 
     btree_iterator() = default;
-    btree_iterator(const btree<Base>* tree , std::shared_ptr<typename btree<Base>::Node> n, size_t i): node{n}, index{i}, tree{tree}{}
+    btree_iterator(const btree<Base>* tree_ , std::shared_ptr<typename btree<Base>::Node> n, size_t i): node{n}, index{i}, tree{tree_}{}
 
     reference operator*() const {
         if(node == nullptr)
@@ -61,14 +61,16 @@ public:
     const size_t& get_index() const { return index;}
     const std::shared_ptr<typename btree<Base>::Node>& get_node() const { return node;}
 
+    std::shared_ptr<typename btree<Base>::Node> node;
+    size_t index{};
+    const btree<Base >* tree;
+
 private:
     bool right_down();
     bool up_right();
     bool down_left();
     bool up_left();
-    std::shared_ptr<typename btree<value_type >::Node> node;
-    size_t index;
-    const btree<value_type >* tree;
+
     friend bool operator==<>(const btree_iterator<Base, Constness>&, const btree_iterator<Base, Constness>&);
 };
 

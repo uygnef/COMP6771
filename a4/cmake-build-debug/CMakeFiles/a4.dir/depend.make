@@ -8,3 +8,8 @@ CMakeFiles/a4.dir/allTests.cpp.o: ../mattTests.h
 CMakeFiles/a4.dir/allTests.cpp.o: ../simulator.h
 CMakeFiles/a4.dir/allTests.cpp.o: ../suite.h
 
+CMakeFiles/a4.dir/cseTests.cpp.o: ../btree.h
+CMakeFiles/a4.dir/cseTests.cpp.o: ../btree_iterator.h
+CMakeFiles/a4.dir/cseTests.cpp.o: ../cseTests.cpp
+CMakeFiles/a4.dir/cseTests.cpp.o: ../suite.h
+
