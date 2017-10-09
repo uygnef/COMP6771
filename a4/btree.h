@@ -214,12 +214,9 @@ class btree {
 // The details of your implementation go here
 struct Node{
     friend btree;
-    std::vector<T> elems;
-    std::vector<std::shared_ptr<Node>> children;
-    size_t max_size;
-    iterator parent;
 
-    Node(size_t max_size): max_size{max_size}, children(1), elems{}{}  //chilren size = elems size + 1
+
+    Node(size_t max_size): elems{}, max_size{max_size}, children(1) {}  //chilren size = elems size + 1
     Node(T val, size_t max_size): elems{val}, max_size{max_size}, children(2){}
     Node(T val, iterator parent, size_t max_size):
             elems{val}, parent{parent}, max_size{max_size}, children(2){}
@@ -247,8 +244,12 @@ struct Node{
             children.push_back(ch);
         }
     }
-
     std::pair<bool, size_t> find(T) const;
+
+    std::vector<T> elems;
+    iterator parent;
+    size_t max_size;
+    std::vector<typename std::shared_ptr<Node>> children;
 };
 
 private:
@@ -410,6 +411,9 @@ typename btree<T>::iterator btree<T>::find(const T &elem)  {
 
 template <typename T>
 typename btree<T>::iterator btree<T>::begin() const {
+    if(root.get()->size() == 0){
+        return btree_iterator<T>(this, nullptr, 0);
+    }
     auto temp_node = root;
     auto pre_temp = root;
     while(temp_node != nullptr){

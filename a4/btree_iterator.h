@@ -41,15 +41,10 @@ public:
     btree_iterator(const btree<Base>* tree_ , std::shared_ptr<typename btree<Base>::Node> n, size_t i): node{n}, index{i}, tree{tree_}{}
 
     reference operator*() const {
-        if(node == nullptr)
-            throw("out of range.");
-        return node.get()->elems[index];
+        return node.lock().get()->elems[index];
     };
 
     pointer operator->() const { return &(operator*());}
-
-//    bool operator==(const btree_iterator<Base, Constness>& rhs);
-//    bool operator!=(const btree_iterator<Base, Constness>& rhs);
 
     btree_iterator& operator++();
     btree_iterator& operator--();
@@ -59,11 +54,11 @@ public:
 
     const btree<Base>* get_tree() const { return tree;}
     const size_t& get_index() const { return index;}
-    const std::shared_ptr<typename btree<Base>::Node>& get_node() const { return node;}
+    const std::shared_ptr<typename btree<Base>::Node>& get_node() const { return node.lock();}
 
-    std::shared_ptr<typename btree<Base>::Node> node;
+    std::weak_ptr<typename btree<Base>::Node> node;
     size_t index{};
-    const btree<Base >* tree;
+    const btree<Base>* tree;
 
 private:
     bool right_down();
@@ -74,87 +69,9 @@ private:
     friend bool operator==<>(const btree_iterator<Base, Constness>&, const btree_iterator<Base, Constness>&);
 };
 
-
-
-
-//template <typename T>
-//class const_btree_iterator{
-//public:
-//    typedef ptrdiff_t                  	difference_type;
-//    typedef std::bidirectional_iterator_tag	iterator_category;
-//    typedef const T 						   	value_type;
-//    typedef const T* 					pointer;
-//    typedef const T& 					reference;
-//
-//    friend class btree_iterator<T>;
-//    friend class const_btree_iterator<const T>;
-//    const_btree_iterator()= default;
-//    const_btree_iterator(const btree<T>* tree, const std::shared_ptr<typename btree<T>::Node>& n1, const size_t& i):
-//            tree{tree}, node{n1}, index{i}{}
-//
-//    reference operator*();
-//    inline const T* operator->(){ return  &(operator*());}
-//
-//    bool operator==(const const_btree_iterator& rhs) ;
-//    bool operator!=(const const_btree_iterator& rhs) ;
-//
-//    const_btree_iterator& operator++();
-//    const_btree_iterator& operator--();
-//
-//
-//private:
-//    std::shared_ptr<typename btree<T>::Node> node;
-//    size_t index;
-//    const btree<const T>* tree;
-//
-//
-//};
-//
-//template <typename T>
-//const T&  const_btree_iterator<T>::operator*() {
-//    if(node== nullptr){
-//        throw("Can not dereference end iterator.");
-//    }
-//    return node.get()->elems[index];
-//}
-//
-//template <typename T>
-//bool const_btree_iterator<T>::operator==(const const_btree_iterator<T> &rhs)  {
-//    return node.get() == rhs.node.get() && index == rhs.index;
-//}
-//
-//template <typename T>
-//bool const_btree_iterator<T>::operator!=(const const_btree_iterator<T> &rhs)  {
-//    return node.get() != rhs.node.get() || index != rhs.index;
-//}
-//
-//template <typename T>
-//const_btree_iterator<T> &const_btree_iterator<T>::operator++() {
-//    auto temp = btree_iterator<T>(tree, node, index);
-//    ++temp;
-//    node = temp.node;
-//    index = temp.index;
-//    return *this;
-//}
-//
-//template <typename T>
-//const_btree_iterator<T> &const_btree_iterator<T>::operator--() {
-//    auto temp = btree_iterator<T>(tree, node, index);
-//    --temp;
-//    node = temp.node;
-//    index = temp.index;
-//    return *this;
-//}
-
-
-//template <typename T, template <typename> class C>
-//bool btree_iterator<T, C>::operator==(const btree_iterator<T, C>& rhs) {
-//    return node.get() == rhs.node.get() && index == rhs.index;
-//}
-
 template <typename T, template <typename> class C>
 bool operator==(const btree_iterator<T, C>& lhs, const btree_iterator<T, C>& rhs){
-    return lhs.tree == rhs.tree && lhs.node == rhs.node && rhs.index == lhs.index;
+    return lhs.tree == rhs.tree && lhs.node.lock() == rhs.node.lock() && rhs.index == lhs.index;
 }
 
 template <typename T, template <typename> class C>
@@ -164,7 +81,8 @@ bool operator!=(const btree_iterator<T, C>& lhs, const btree_iterator<T, C>& rhs
 
 template <typename T, template <typename> class C>
 btree_iterator<T, C> &btree_iterator<T, C>::operator++() {
-    if(node.get()->parent.node == nullptr && index > node.get()->size() ){
+
+    if(node.lock().get()->parent.node.lock() == nullptr && index >= node.lock().get()->size() ){
         return *this;
     }
 
@@ -175,7 +93,7 @@ btree_iterator<T, C> &btree_iterator<T, C>::operator++() {
         return *this;
     }
     // check if it's last node
-    if(index != node.get()->size() - 1){
+    if(index != node.lock().get()->size() - 1){
         ++index;
         return *this;
     }
@@ -183,8 +101,8 @@ btree_iterator<T, C> &btree_iterator<T, C>::operator++() {
     res = up_right();
     while(!res){
         res = up_right();
-        if (node.get()->parent.node == nullptr){
-            node = nullptr;
+        if (node.lock().get()->parent.node.lock() == nullptr){
+            node = std::weak_ptr<typename btree<T>::Node>();
             index = 0;
             return *this;
         }
@@ -200,39 +118,39 @@ btree_iterator<T, C> &btree_iterator<T, C>::operator++() {
 
 template <typename T, template <typename> class C>
 bool btree_iterator<T, C>::right_down() {
-    if(node.get()->children[index+1] == nullptr){
+    if(node.lock().get()->children[index+1] == nullptr){
         return false;
     }
-    node = node.get()->children[index+1];
+    node = node.lock().get()->children[index+1];
     index = 0;
     return true;
 }
 
 template <typename T, template <typename> class C>
 bool btree_iterator<T, C>::up_right() {
-    if(node.get()->parent.node == nullptr){
+    if(node.lock().get()->parent.node.lock() == nullptr){
         return false;
     }
 
-    index = node.get()->parent.index;
-    node = node.get()->parent.node;
+    index = node.lock().get()->parent.index;
+    node = node.lock().get()->parent.node;
 
-    return node.get()->size() > index;
+    return node.lock().get()->size() > index;
 }
 
 template <typename T, template <typename> class C>
 bool btree_iterator<T, C>::down_left() {
-    if(node.get()->children[index] == nullptr){
+    if(node.lock().get()->children[index] == nullptr){
         return false;
     }
-    node = node.get()->children[index];
+    node = node.lock().get()->children[index];
     index = 0;
     return true;
 }
 
 template <typename T, template <typename> class C>
 btree_iterator<T, C> &btree_iterator<T, C>::operator--() {
-    if(node == nullptr){
+    if(node.lock() == nullptr){
         const auto& i = tree->pre_end();
         node = i.node;
         index = i.index;
@@ -241,11 +159,11 @@ btree_iterator<T, C> &btree_iterator<T, C>::operator--() {
 
     bool res = down_left();
     if(res){
-        index = node.get()->size() - 1;
+        index = node.lock().get()->size() - 1;
         while(res){
             res = right_down();
             if(res){
-                index = node.get()->size() - 1 ;
+                index = node.lock().get()->size() - 1 ;
             }
         }
         return *this;
@@ -256,7 +174,7 @@ btree_iterator<T, C> &btree_iterator<T, C>::operator--() {
     }
 
     while(!up_left()){
-        if( node.get()->parent.node == nullptr)
+        if( node.lock().get()->parent.node.lock() == nullptr)
             break;
     }
     return *this;
@@ -265,12 +183,12 @@ btree_iterator<T, C> &btree_iterator<T, C>::operator--() {
 template <typename T, template <typename> class C>
 bool btree_iterator<T, C>::up_left() {
     // have got root
-    if(node.get()->parent.node == nullptr){
+    if(node.lock().get()->parent.node.lock() == nullptr){
         return false;
     }
 
-    index = node.get()->parent.index;
-    node = node.get()->parent.node;
+    index = node.lock().get()->parent.index;
+    node = node.lock().get()->parent.node;
     if(index != 0){
         --index;
         return true;

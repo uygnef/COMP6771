@@ -150,6 +150,33 @@ allTests.cpp.s:
 	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/allTests.cpp.s
 .PHONY : allTests.cpp.s
 
+cameronTests.o: cameronTests.cpp.o
+
+.PHONY : cameronTests.o
+
+# target to build an object file
+cameronTests.cpp.o:
+	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/cameronTests.cpp.o
+.PHONY : cameronTests.cpp.o
+
+cameronTests.i: cameronTests.cpp.i
+
+.PHONY : cameronTests.i
+
+# target to preprocess a source file
+cameronTests.cpp.i:
+	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/cameronTests.cpp.i
+.PHONY : cameronTests.cpp.i
+
+cameronTests.s: cameronTests.cpp.s
+
+.PHONY : cameronTests.s
+
+# target to generate assembly for a file
+cameronTests.cpp.s:
+	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/cameronTests.cpp.s
+.PHONY : cameronTests.cpp.s
+
 cseTests.o: cseTests.cpp.o
 
 .PHONY : cseTests.o
@@ -189,6 +216,9 @@ help:
 	@echo "... allTests.o"
 	@echo "... allTests.i"
 	@echo "... allTests.s"
+	@echo "... cameronTests.o"
+	@echo "... cameronTests.i"
+	@echo "... cameronTests.s"
 	@echo "... cseTests.o"
 	@echo "... cseTests.i"
 	@echo "... cseTests.s"

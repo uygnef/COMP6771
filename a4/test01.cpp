@@ -37,7 +37,7 @@ const long kMaxInteger = 100000000;
 void initRandom(unsigned long);
 long getRandom(long low, long high);
 void insertRandomNumbers(btree<long>&, set<long>&, size_t);
-bool confirmEverythingMatches(const btree<long>&, const set<long>&);
+//bool confirmEverythingMatches(const btree<long>&, const set<long>&);
 
 /**
  * Initialises random number generator.
@@ -89,7 +89,7 @@ void insertRandomNumbers(btree<long>& testContainer, set<long>& stableContainer,
  * an integer in one container and not the other, then 
  * we bail immediately and return one to express failure.
  **/
-bool confirmEverythingMatches(btree<long>& testContainer, set<long>& stableContainer) {
+bool confirmEverythingMatches( btree<long>& testContainer, const set<long>& stableContainer) {
   cout << "Confirms the btree and the set " 
           "contain exactly the same values..." << endl;
   for (long i = kMinInteger; i <= kMaxInteger; i++) {
@@ -143,20 +143,6 @@ int main(void) {
 	cout << *iter;
 	cout << endl;
   
-  // const iterator test
-  const btree<char>& refstring = astring;
-    btree<char>::const_iterator iter;
-	cout << "Voila!  Sorted!" << endl;
-	for(iter = refstring.begin(); iter != refstring.end(); ++iter) {
-		astring.insert(static_cast<char>(getRandom('A', 'z')));
-	
-		cout << *(iter) << " ";
-	}
-	
-	for(btree<char>::const_iterator iter = refstring.begin(); !(iter == refstring.end()); ++iter)
-		cout << *iter;
-	cout << endl;
-
   // a full-scale string test of the tree using iterators
   btree<string> *strTable = new btree<string>(40);
 		

@@ -8,6 +8,11 @@ CMakeFiles/a4.dir/allTests.cpp.o
  /home/yu/6771/a4/mattTests.h
  /home/yu/6771/a4/simulator.h
  /home/yu/6771/a4/suite.h
+CMakeFiles/a4.dir/cameronTests.cpp.o
+ /home/yu/6771/a4/btree.h
+ /home/yu/6771/a4/btree_iterator.h
+ /home/yu/6771/a4/cameronTests.cpp
+ /home/yu/6771/a4/suite.h
 CMakeFiles/a4.dir/cseTests.cpp.o
  /home/yu/6771/a4/btree.h
  /home/yu/6771/a4/btree_iterator.h
