@@ -84,22 +84,13 @@
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="/home/yu/6771/a4/allTests.cpp">
-			<Option target="a4"/>
-		</Unit>
 		<Unit filename="/home/yu/6771/a4/btree.h">
 			<Option target="a4"/>
 		</Unit>
 		<Unit filename="/home/yu/6771/a4/btree_iterator.h">
 			<Option target="a4"/>
 		</Unit>
-		<Unit filename="/home/yu/6771/a4/cameronTests.cpp">
-			<Option target="a4"/>
-		</Unit>
-		<Unit filename="/home/yu/6771/a4/cseTests.cpp">
-			<Option target="a4"/>
-		</Unit>
-		<Unit filename="/home/yu/6771/a4/mattTests.h">
+		<Unit filename="/home/yu/6771/a4/test01.cpp">
 			<Option target="a4"/>
 		</Unit>
 		<Unit filename="/home/yu/6771/a4/CMakeLists.txt">

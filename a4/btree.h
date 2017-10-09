@@ -9,15 +9,13 @@
 
 #ifndef BTREE_H
 #define BTREE_H
-
-#include <iostream>
 #include <cstddef>
+#include <exception>
+#include <iostream>
+#include <memory>
+#include <queue>
 #include <utility>
 #include <vector>
-#include <memory>
-//#include <bits/shared_ptr.h>
-#include <exception>
-#include <queue>
 
 // we better include the iterator
 #include "btree_iterator.h"

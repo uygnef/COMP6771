@@ -123,86 +123,32 @@ a4/fast:
 	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/build
 .PHONY : a4/fast
 
-allTests.o: allTests.cpp.o
+test01.o: test01.cpp.o
 
-.PHONY : allTests.o
-
-# target to build an object file
-allTests.cpp.o:
-	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/allTests.cpp.o
-.PHONY : allTests.cpp.o
-
-allTests.i: allTests.cpp.i
-
-.PHONY : allTests.i
-
-# target to preprocess a source file
-allTests.cpp.i:
-	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/allTests.cpp.i
-.PHONY : allTests.cpp.i
-
-allTests.s: allTests.cpp.s
-
-.PHONY : allTests.s
-
-# target to generate assembly for a file
-allTests.cpp.s:
-	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/allTests.cpp.s
-.PHONY : allTests.cpp.s
-
-cameronTests.o: cameronTests.cpp.o
-
-.PHONY : cameronTests.o
+.PHONY : test01.o
 
 # target to build an object file
-cameronTests.cpp.o:
-	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/cameronTests.cpp.o
-.PHONY : cameronTests.cpp.o
+test01.cpp.o:
+	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/test01.cpp.o
+.PHONY : test01.cpp.o
 
-cameronTests.i: cameronTests.cpp.i
+test01.i: test01.cpp.i
 
-.PHONY : cameronTests.i
-
-# target to preprocess a source file
-cameronTests.cpp.i:
-	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/cameronTests.cpp.i
-.PHONY : cameronTests.cpp.i
-
-cameronTests.s: cameronTests.cpp.s
-
-.PHONY : cameronTests.s
-
-# target to generate assembly for a file
-cameronTests.cpp.s:
-	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/cameronTests.cpp.s
-.PHONY : cameronTests.cpp.s
-
-cseTests.o: cseTests.cpp.o
-
-.PHONY : cseTests.o
-
-# target to build an object file
-cseTests.cpp.o:
-	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/cseTests.cpp.o
-.PHONY : cseTests.cpp.o
-
-cseTests.i: cseTests.cpp.i
-
-.PHONY : cseTests.i
+.PHONY : test01.i
 
 # target to preprocess a source file
-cseTests.cpp.i:
-	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/cseTests.cpp.i
-.PHONY : cseTests.cpp.i
+test01.cpp.i:
+	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/test01.cpp.i
+.PHONY : test01.cpp.i
 
-cseTests.s: cseTests.cpp.s
+test01.s: test01.cpp.s
 
-.PHONY : cseTests.s
+.PHONY : test01.s
 
 # target to generate assembly for a file
-cseTests.cpp.s:
-	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/cseTests.cpp.s
-.PHONY : cseTests.cpp.s
+test01.cpp.s:
+	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/test01.cpp.s
+.PHONY : test01.cpp.s
 
 # Help Target
 help:
@@ -213,15 +159,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... a4"
-	@echo "... allTests.o"
-	@echo "... allTests.i"
-	@echo "... allTests.s"
-	@echo "... cameronTests.o"
-	@echo "... cameronTests.i"
-	@echo "... cameronTests.s"
-	@echo "... cseTests.o"
-	@echo "... cseTests.i"
-	@echo "... cseTests.s"
+	@echo "... test01.o"
+	@echo "... test01.i"
+	@echo "... test01.s"
 .PHONY : help
 
 
