@@ -16,10 +16,10 @@ int main() {
     std::cout << std::endl;
 
     std::cout << a << std::endl;
-    auto das = a.begin();
-    auto i = a.end();
+    auto das = a.rbegin();
+    auto i = a.rend();
     --i;
-    for(; i != a.begin(); --i){
+    for(; i != a.rbegin(); --i){
         std::cout << "--"<<*i<<"--" << std::flush;
     }
 
