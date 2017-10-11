@@ -12,13 +12,14 @@ int main() {
         std::cout << sa << " ";
         a.insert(sa);
     }
+    auto dsd = a.find(3);
     std::cout << std::endl;
 
     std::cout << a << std::endl;
-    auto das = a.begin();
-    auto i = a.end();
+    auto das = a.rbegin();
+    auto i = a.rend();
     --i;
-    for(; i != a.begin(); --i){
+    for(; i != a.rbegin(); --i){
         std::cout << "--"<<*i<<"--" << std::flush;
     }
 

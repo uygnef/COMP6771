@@ -123,32 +123,32 @@ a4/fast:
 	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/build
 .PHONY : a4/fast
 
-test01.o: test01.cpp.o
+main.o: main.cpp.o
 
-.PHONY : test01.o
+.PHONY : main.o
 
 # target to build an object file
-test01.cpp.o:
-	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/test01.cpp.o
-.PHONY : test01.cpp.o
+main.cpp.o:
+	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/main.cpp.o
+.PHONY : main.cpp.o
 
-test01.i: test01.cpp.i
+main.i: main.cpp.i
 
-.PHONY : test01.i
+.PHONY : main.i
 
 # target to preprocess a source file
-test01.cpp.i:
-	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/test01.cpp.i
-.PHONY : test01.cpp.i
+main.cpp.i:
+	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/main.cpp.i
+.PHONY : main.cpp.i
 
-test01.s: test01.cpp.s
+main.s: main.cpp.s
 
-.PHONY : test01.s
+.PHONY : main.s
 
 # target to generate assembly for a file
-test01.cpp.s:
-	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/test01.cpp.s
-.PHONY : test01.cpp.s
+main.cpp.s:
+	$(MAKE) -f CMakeFiles/a4.dir/build.make CMakeFiles/a4.dir/main.cpp.s
+.PHONY : main.cpp.s
 
 # Help Target
 help:
@@ -159,9 +159,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... a4"
-	@echo "... test01.o"
-	@echo "... test01.i"
-	@echo "... test01.s"
+	@echo "... main.o"
+	@echo "... main.i"
+	@echo "... main.s"
 .PHONY : help
 
 

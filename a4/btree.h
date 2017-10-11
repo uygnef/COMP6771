@@ -9,15 +9,13 @@
 
 #ifndef BTREE_H
 #define BTREE_H
-
-#include <iostream>
 #include <cstddef>
+#include <exception>
+#include <iostream>
+#include <memory>
+#include <queue>
 #include <utility>
 #include <vector>
-#include <memory>
-//#include <bits/shared_ptr.h>
-#include <exception>
-#include <queue>
 
 // we better include the iterator
 #include "btree_iterator.h"
@@ -29,8 +27,18 @@ template <typename T>
 class btree {
  public:
   /** Hmm, need some iterator typedefs here... friends? **/
-    friend class btree_iterator<T>;
-    using iterator = btree_iterator<T>;
+
+    using iterator = btree_iterator<T> ;
+    friend iterator;
+
+    using const_iterator = btree_iterator<T, std::add_const> ;
+    friend const_iterator ;
+
+    using reverse_iterator =  std::reverse_iterator<iterator> ;
+    friend reverse_iterator;
+
+    using const_reverse_iterator = std::reverse_iterator<const_iterator> ;
+    friend const_reverse_iterator;
   /**
    * Constructs an empty btree.  Note that
    * the elements stored in your btree must
@@ -125,6 +133,12 @@ class btree {
 
     iterator begin() const;
     inline iterator end() const{ return btree_iterator<T>(this, nullptr, 0);}
+    reverse_iterator 		rbegin() 	const;
+    reverse_iterator 		rend() 		const;
+    const_iterator 			cbegin() 	const;
+    const_iterator 			cend() 		const;
+    const_reverse_iterator 	crbegin() 	const;
+    const_reverse_iterator 	crend() 	const;
   
   /**
     * Returns an iterator to the matching element, or whatever 
@@ -140,10 +154,10 @@ class btree {
     * @return an iterator to the matching element, or whatever the
     *         non-const end() returns if no such match was ever found.
     */
-    iterator find(const T& elem) const;
-    
+    iterator find(const T& elem);
+
   /**
-    * Identical in functionality to the non-const version of find, 
+    * Identical in functionality to the non-const version of find,
     * save the fact that what's pointed to by the returned iterator
     * is deemed as const and immutable.
     *
@@ -151,8 +165,8 @@ class btree {
     * @return an iterator to the matching element, or whatever the
     *         const end() returns if no such match was ever found.
     */
- // const_iterator find(const T& elem) const;
-      
+    const_iterator find(const T& elem) const;
+
   /**
     * Operation which inserts the specified element
     * into the btree if a matching element isn't already
@@ -160,24 +174,24 @@ class btree {
     * to be inserted, the size of the btree is effectively
     * increases by one, and the pair that gets returned contains
     * an iterator to the inserted element and true in its first and
-    * second fields.  
+    * second fields.
     *
     * If a matching element already exists in the btree, nothing
-    * is added at all, and the size of the btree stays the same.  The 
+    * is added at all, and the size of the btree stays the same.  The
     * returned pair still returns an iterator to the matching element, but
     * the second field of the returned pair will store false.  This
     * second value can be checked to after an insertion to decide whether
     * or not the btree got bigger.
     *
-    * The insert method makes use of T's zero-arg constructor and 
-    * operator= method, and if these things aren't available, 
+    * The insert method makes use of T's zero-arg constructor and
+    * operator= method, and if these things aren't available,
     * then the call to btree<T>::insert will not compile.  The implementation
     * also makes use of the class's operator== and operator< as well.
     *
     * @param elem the element to be inserted.
     * @return a pair whose first field is an iterator positioned at
-    *         the matching element in the btree, and whose second field 
-    *         stores true if and only if the element needed to be added 
+    *         the matching element in the btree, and whose second field
+    *         stores true if and only if the element needed to be added
     *         because no matching element was there prior to the insert call.
     */
     std::pair<iterator, bool> insert(const T& elem);
@@ -195,45 +209,48 @@ class btree {
   };
 
 
+// The details of your implementation go here
+struct Node{
+    friend btree;
+
+
+    Node(size_t max_size): elems{}, max_size{max_size}, children(1) {}  //chilren size = elems size + 1
+    Node(T val, size_t max_size): elems{val}, max_size{max_size}, children(2){}
+    Node(T val, iterator parent, size_t max_size):
+            elems{val}, parent{parent}, max_size{max_size}, children(2){}
+
+    ~Node(){
+        elems.clear();
+        children.clear();
+    }
+
+    inline bool is_full(){ return elems.size() == max_size;}
+    inline size_t size(){ return elems.size();}
+
+    //copy value if vector is full, push back.
+    inline void copy_elem_insert(const size_t& i, T val){
+        if(i < size()){
+            elems[i] = val;
+        }else{
+            elems.push_back(val);
+        }
+    }
+    inline void copy_child_insert(const size_t& i, const std::shared_ptr<Node>& ch){
+        if(i < children.size()){
+            children[i] = ch;
+        }else{
+            children.push_back(ch);
+        }
+    }
+    std::pair<bool, size_t> find(T) const;
+
+    std::vector<T> elems;
+    iterator parent;
+    size_t max_size;
+    std::vector<typename std::shared_ptr<Node>> children;
+};
+
 private:
-    // The details of your implementation go here
-    struct Node{
-        std::vector<T> elems;
-        std::vector<std::shared_ptr<Node>> children;
-        size_t max_size;
-        iterator parent;
-
-        Node(size_t max_size): max_size{max_size}, children(1), elems{}{}  //chilren size = elems size + 1
-        Node(T val, size_t max_size): elems{val}, max_size{max_size}, children(2){}
-        Node(T val, iterator parent, size_t max_size):
-                elems{val}, parent{parent}, max_size{max_size}, children(2){}
-
-        ~Node(){
-            elems.clear();
-            children.clear();
-        }
-
-        inline bool is_full(){ return elems.size() == max_size;}
-        inline size_t size(){ return elems.size();}
-
-        //copy value if vector is full, push back.
-        inline void copy_elem_insert(const size_t& i, T val){
-            if(i < size()){
-                elems[i] = val;
-            }else{
-                elems.push_back(val);
-            }
-        }
-        inline void copy_child_insert(const size_t& i, const std::shared_ptr<Node>& ch){
-            if(i < children.size()){
-                children[i] = ch;
-            }else{
-                children.push_back(ch);
-            }
-        }
-
-        std::pair<bool, size_t> find(T);
-    };
 
     void print_tree(std::ostream& os, std::queue<typename std::shared_ptr<Node>>& node_queue) const {
 
@@ -250,14 +267,14 @@ private:
     }
 
     void copy_helper(const std::shared_ptr<Node>& old, std::shared_ptr<Node>& new_list);
-    iterator pre_end();
+    iterator pre_end() const;
 
     size_t max_size;
     std::shared_ptr<Node> root;
 };
 
 template <typename T>
-std::pair<bool, size_t> btree<T>::Node::find(T key) {
+std::pair<bool, size_t> btree<T>::Node::find(T key) const{
     size_t i;
     for(i = 0 ; i < elems.size(); ++i){
         if(elems[i] == key){
@@ -350,7 +367,7 @@ btree<T> &btree<T>::operator=(const btree<T> &rhs) {
     root.get()->elems.clear();
     root.get()->children.clear();
     max_size = rhs.max_size;
-    copy_helper(root, rhs.root);
+    copy_helper(rhs.root, root);
     return *this;
 }
 
@@ -370,13 +387,13 @@ btree<T> &btree<T>::operator=(btree<T> &&rhs) {
 }
 
 template <typename T>
-typename btree<T>::iterator btree<T>::find(const T &elem) const {
+typename btree<T>::iterator btree<T>::find(const T &elem)  {
     auto temp_node = root;
     size_t i;
     while(temp_node != nullptr){
         for(i = 0; i < temp_node.get()->elems.size(); ++i){
             if(temp_node.get()->elems[i] == elem){
-                return btree_iterator<T>(this, temp_node, i);
+                return btree<T>::iterator(this, temp_node, i);
             }
             if(elem < temp_node.get()->elems[i]){
                 break;
@@ -385,11 +402,16 @@ typename btree<T>::iterator btree<T>::find(const T &elem) const {
         temp_node = temp_node.get()->children[i];
     }
 
-    return btree::iterator(this, std::shared_ptr<Node>(), 0);
+    return end();
 }
+
+
 
 template <typename T>
 typename btree<T>::iterator btree<T>::begin() const {
+    if(root.get()->size() == 0){
+        return btree_iterator<T>(this, nullptr, 0);
+    }
     auto temp_node = root;
     auto pre_temp = root;
     while(temp_node != nullptr){
@@ -401,7 +423,7 @@ typename btree<T>::iterator btree<T>::begin() const {
 }
 
 template <typename T>
-typename btree<T>::iterator btree<T>::pre_end() {
+typename btree<T>::iterator btree<T>::pre_end() const {
     auto temp_node = root;
     auto last_child_val = temp_node.get()->children[temp_node.get()->children.size()-1];
     while(last_child_val != nullptr){
@@ -411,10 +433,55 @@ typename btree<T>::iterator btree<T>::pre_end() {
     return btree_iterator<T>(this, temp_node, temp_node.get()->elems.size()-1 );
 }
 
-//template <typename T>
-//const btree::iterator btree::begin() {
-//    return btree::iterator(std::shared_ptr<Node>(), 0);
-//}
+template <typename T>
+typename btree<T>::reverse_iterator btree<T>::rbegin() const {
+    return btree<T>::reverse_iterator(end());
+}
+
+template <typename T>
+typename btree<T>::reverse_iterator btree<T>::rend() const {
+    return btree<T>::reverse_iterator(begin());
+}
+
+template <typename T>
+typename btree<T>::const_iterator btree<T>::cbegin() const {
+    return btree::const_iterator(begin().get_tree(), begin().get_node(), begin().get_index());
+}
+
+template <typename T>
+typename btree<T>::const_iterator btree<T>::cend() const {
+    auto it = end();
+    return btree<T>::const_iterator(it.get_tree(), it.get_node(), it.get_index());
+}
+
+template <typename T>
+typename btree<T>::const_reverse_iterator btree<T>::crbegin() const {
+    return btree<T>::const_reverse_iterator(cend());
+}
+
+template <typename T>
+typename btree<T>::const_reverse_iterator btree<T>::crend() const {
+    return btree<T>::const_reverse_iterator(cbegin());
+}
+
+template <typename T>
+typename btree<T>::const_iterator btree<T>::find(const T &elem) const {
+    auto temp_node = root;
+    size_t i;
+    while(temp_node != nullptr){
+        for(i = 0; i < temp_node.get()->elems.size(); ++i){
+            if(temp_node.get()->elems[i] == elem){
+                return btree<T>::const_iterator(this, temp_node, i);
+            }
+            if(elem < temp_node.get()->elems[i]){
+                break;
+            }
+        }
+        temp_node = temp_node.get()->children[i];
+    }
+
+    return cend();
+}
 
 
 #endif

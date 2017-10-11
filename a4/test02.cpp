@@ -18,7 +18,7 @@ int main(void) {
   b.insert(4);
 
   for(btree<int>::iterator iter = b.begin(); iter != b.end(); ++iter)
-    std::cout << *iter << std::endl;
+    std::cout << *iter << std::endl<<std::flush;
 
   foo(b);
   
