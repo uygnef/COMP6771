@@ -6,8 +6,8 @@
 
 int main() {
 
-    unsigned int totalNumbers =	500000;
-    unsigned int printIndex =	259000;
+    unsigned int totalNumbers =	5;
+    unsigned int printIndex =	3;
 
     // use totalNumbers required as the seed for the random
     // number generator.

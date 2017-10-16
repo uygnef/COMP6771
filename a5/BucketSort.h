@@ -15,7 +15,14 @@ public:
     void sort(unsigned int numCores);
 
 private:
-    void split(unsigned int numCores);
+    // void split(std::size_t start, std::size_t end, std::vector<std::vector<unsigned int>>& , unsigned int numCores);
+
+    std::pair<unsigned int, int> getMax();
+
+    int get_digits(unsigned int);
+
+    inline int get_digits_in_pos(unsigned int num, int pos, const int&);
+
 };
 
 
