@@ -1,0 +1,1 @@
+/usr/bin/c++  -g   CMakeFiles/a5.dir/main.cpp.o CMakeFiles/a5.dir/BucketSort.cpp.o  -o a5 

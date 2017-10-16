@@ -1,0 +1,30 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/yu/6771/a5/BucketSort.cpp
+BucketSort.h
+/home/yu/6771/a5/BucketSort.h
+algorithm
+-
+cmath
+-
+
+/home/yu/6771/a5/BucketSort.h
+vector
+-
+
+/home/yu/6771/a5/main.cpp
+iostream
+-
+random
+-
+thread
+-
+BucketSort.h
+/home/yu/6771/a5/BucketSort.h
+
