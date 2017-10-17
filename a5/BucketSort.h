@@ -26,7 +26,7 @@ private:
 
     inline int get_digits_in_pos(unsigned int num, int pos, const int&);
 
-    inline void merge_all(int total_thread, unsigned long step);
+    inline void merge_all(int total_thread, size_t step);
 
 };
 
