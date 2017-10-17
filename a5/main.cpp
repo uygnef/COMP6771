@@ -6,8 +6,8 @@
 
 int main() {
 
-    unsigned int totalNumbers = 200;
-    unsigned int printIndex =	30;
+    unsigned int totalNumbers = 1000;
+    unsigned int printIndex =	5;
 
 
     // use totalNumbers required as the seed for the random
@@ -25,15 +25,19 @@ int main() {
 
     // call sort giving the number of cores available.
     const unsigned int numCores = std::thread::hardware_concurrency();
-    pbs.thread_sort(0, totalNumbers);
+    pbs.sort(numCores);
 
     std::cout << "number of cores used: " << numCores << std::endl;
 
     // print certain values from the buckets
     std::cout << "Demonstrating that all the numbers that start with 1 come first" << std::endl;
 
-    std::cout << pbs.numbersToSort[0] << " " << pbs.numbersToSort[printIndex - 2]
-              << " " << pbs.numbersToSort[printIndex] << " " << pbs.numbersToSort[pbs.numbersToSort.size() - 1]
-              << std::endl;
+    for(auto &i: pbs.numbersToSort){
+        std::cout << i << std::endl;
+    }
+    std::cout << pbs.numbersToSort.size();
+//    std::cout << pbs.numbersToSort[0] << " " << pbs.numbersToSort[printIndex - 2]
+//              << " " << pbs.numbersToSort[printIndex] << " " << pbs.numbersToSort[pbs.numbersToSort.size() - 1]
+//              << std::endl;
 
 }
