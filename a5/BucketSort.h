@@ -13,9 +13,9 @@ public:
     std::vector<unsigned int> numbersToSort;
 
     void sort(int CoreNum);
-    void thread_sort(unsigned long offset, unsigned long vector_len);
 
 public:
+    void thread_sort(unsigned long offset, unsigned long vector_len);
 
     inline std::pair<unsigned int, int> getMax();
 
