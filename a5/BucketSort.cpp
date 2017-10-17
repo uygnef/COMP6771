@@ -9,7 +9,7 @@
 #include <thread>
 #include <iostream>
 
-bool aLessB(unsigned int x, unsigned int y, unsigned int pow) {
+bool aLessB(unsigned int x, unsigned int y) {
     if (x == y) return false; // if the two numbers are the same then one is not less than the other
 
     unsigned int a = x;
@@ -30,20 +30,27 @@ bool aLessB(unsigned int x, unsigned int y, unsigned int pow) {
         b_digits += 1;
     }
 
+    // cast to avoid overflow
+    auto x_l = static_cast<unsigned long long>(x);
+    auto y_l = static_cast<unsigned long long>(y);
     if(a_digits > b_digits){
-        y *= (std::pow(10, a_digits-b_digits));
+        y_l *= (std::pow(10, a_digits-b_digits));
     }else{
-        x *= (std::pow(10, b_digits-a_digits));
+        x_l *= (std::pow(10, b_digits-a_digits));
     }
 
-    if(x == y){
+    if(x_l == y_l){
         return flag;
     }
-    return x < y;
+    return x_l < y_l;
 }
 
 // sort element from start index to end index.
 void BucketSort::thread_sort(size_t start, size_t end) {
+    if(numbersToSort.size() < 2){
+        return;
+    }
+
     std::vector<std::vector<unsigned int>> radix_array;
     int max_digits = getMax().second;
 
@@ -122,7 +129,7 @@ void BucketSort::merge_all(int total_thread, size_t step) {
 
         for(auto j=0; j < total_thread; ++j){
             if(index[j] < (j+1) * step || (j == total_thread-1 && index[j] < numbersToSort.size())){
-                if(aLessB(numbersToSort[index[j]], smallest, 0)){
+                if(aLessB(numbersToSort[index[j]], smallest)){
                     smallest = numbersToSort[index[j]];
                     smallest_index = j;
                 }

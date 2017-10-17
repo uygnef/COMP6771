@@ -23,9 +23,17 @@ vector
 -
 
 /home/yu/6771/a5/main.cpp
+algorithm
+-
+chrono
+-
 iostream
 -
+future
+-
 random
+-
+string
 -
 thread
 -
