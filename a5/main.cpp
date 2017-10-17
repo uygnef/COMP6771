@@ -32,9 +32,9 @@ int main() {
     // print certain values from the buckets
     std::cout << "Demonstrating that all the numbers that start with 1 come first" << std::endl;
 
-//    for(auto &i: pbs.numbersToSort){
-//        std::cout << i << std::endl;
-//    }
+    for(auto &i: pbs.numbersToSort){
+        std::cout << i << std::endl;
+    }
     std::cout << pbs.numbersToSort.size();
 //    std::cout << pbs.numbersToSort.size();
 //    std::cout << pbs.numbersToSort[0] << " " << pbs.numbersToSort[printIndex/5]
