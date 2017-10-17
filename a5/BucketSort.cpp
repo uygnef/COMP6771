@@ -116,7 +116,7 @@ void BucketSort::merge_all(int total_thread, size_t step) {
     }
 
     unsigned smallest = 0;
-    for(auto i=0; i < numbersToSort.size(); ++i){
+    for(auto i=0U; i < numbersToSort.size(); ++i){
         int smallest_index = -1;
 
         for(auto j=0; j < total_thread; ++j){
