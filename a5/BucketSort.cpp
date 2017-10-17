@@ -8,35 +8,40 @@
 #include <cmath>
 #include <thread>
 #include <iostream>
+time_t time1 = 0;
 
-bool aLessB(const unsigned int& x, const unsigned int& y, unsigned int pow) {
-
+bool aLessB(unsigned int x, unsigned int y, unsigned int pow) {
+    time_t temp_time = time(nullptr);
     if (x == y) return false; // if the two numbers are the same then one is not less than the other
 
     unsigned int a = x;
     unsigned int b = y;
 
-    // work out the digit we are currently comparing on.
-    if (pow == 0) {
-        while (a / 10 > 0) {
-            a = a / 10;
-        }
-        while (b / 10 > 0) {
-            b = b / 10;
-        }
-    } else {
-        while (a / 10 >= (unsigned int) std::round(std::pow(10,pow))) {
-            a = a / 10;
-        }
-        while (b / 10 >= (unsigned int) std::round(std::pow(10,pow))) {
-            b = b / 10;
-        }
+    bool flag = false;
+    if(a < b){
+        flag = true;
+    }
+    unsigned a_digits = 0, b_digits = 0;
+
+    while(a > 9){
+        a /= 10;
+        a_digits += 1;
+    }
+    while(b > 9){
+        b /=10;
+        b_digits += 1;
     }
 
-    if (a == b)
-        return aLessB(x,y,pow + 1);  // recurse if this digit is the same
-    else
-        return a < b;
+    if(a_digits > b_digits){
+        y *= (std::pow(10, a_digits-b_digits));
+    }else{
+        x *= (std::pow(10, b_digits-a_digits));
+    }
+
+    if(x == y){
+        return flag;
+    }
+    return x < y;
 }
 
 // TODO: replace this with a parallel version.
@@ -95,8 +100,8 @@ int BucketSort::get_digits_in_pos(unsigned int num, int pos, const int& max_pos)
     if(pos < 1){
         return -1;
     }
-    for(auto i=1; i < pos; ++i){
-        temp *= 10;
+    if(pos > 1){
+        temp *= std::pow(10, pos-1);
     }
     return (num/temp) % 10;
 }
@@ -125,11 +130,6 @@ void BucketSort::merge_all(int total_thread, size_t step) {
     for(auto i=0; i < numbersToSort.size(); ++i){
         int smallest_index = -1;
 
-//        std::cout << "--index--:\n";
-//        for(auto& d: index){
-//            std::cout << d << std::endl;
-//        }
-        // get the first available element
         for(auto j=0; j < total_thread; ++j){
             if(index[j] < (j + 1) * step || (j == total_thread-1 && index[j] < numbersToSort.size())){
                 smallest = numbersToSort[index[j]];
@@ -137,35 +137,25 @@ void BucketSort::merge_all(int total_thread, size_t step) {
                 break;
             }
         }
-//        std::cout << "-1-  smallest : " << smallest << " index: " << smallest_index << "\n";
 
         for(auto j=0; j < total_thread; ++j){
-
             if(index[j] < (j+1) * step || (j == total_thread-1 && index[j] < numbersToSort.size())){
-//                std::cout << "true \n";
-//                std::cout << "^^^^^^^" << numbersToSort[index[j]] << " " << smallest <<  std::endl;
-//                std::cout << "^^^^^^^" << index[j] << " " << j << std::endl;
                 if(aLessB(numbersToSort[index[j]], smallest, 0)){
-         //           std::cout << "-2- true \n";
-
                     smallest = numbersToSort[index[j]];
                     smallest_index = j;
                 }
             }
         }
-//        std::cout << "-2-  smallest : " << smallest << " index: " << smallest_index << "\n";
-
         if(smallest_index != -1){
-//            std::cout << "emplace num: " << smallest << " " << smallest_index << " " << index[smallest_index] << '\n';
             index[smallest_index] += 1;
         } else{
-//            std::cout << "nala\n";
             throw("error index.\n");
         }
 
         res.emplace_back(smallest);
     }
     numbersToSort = std::move(res);
+
 }
 
 void BucketSort::sort(int CoreNum) {
@@ -174,6 +164,9 @@ void BucketSort::sort(int CoreNum) {
     size_t step = static_cast<size_t>(std::floor(numbersToSort.size() / CoreNum ));
     size_t start = 0;
     std::cout << "start sort\n";
+
+    time_t timer = time(nullptr);
+
     for(auto i = 0; i < CoreNum; ++i){
         if(i == CoreNum-1){
             vec_thr.emplace_back(&BucketSort::thread_exec, this, start, -1);
@@ -183,11 +176,17 @@ void BucketSort::sort(int CoreNum) {
         start += step;
     }
 
+
     for(auto& i: vec_thr){
         i.join();
     }
 
-
+    std::cout << "muti cost :" << time(nullptr) - timer << "\n";
+    timer = time(nullptr);
     merge_all(CoreNum, step);
+    std::cout << "merge cost :" << time(nullptr) - timer << "\n";
+
+    std::cout << "less than cost :" << time1 << "\n";
+
 
 }
