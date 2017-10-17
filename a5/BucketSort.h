@@ -5,7 +5,10 @@
 #ifndef A5_BUCKETSORT_H
 #define A5_BUCKETSORT_H
 #include <vector>
-
+#include <algorithm>
+#include <cmath>
+#include <thread>
+#include <iostream>
 
 class BucketSort {
     // vector of numbers
@@ -14,8 +17,8 @@ public:
 
     void sort(int CoreNum);
 
-public:
-    void thread_sort(unsigned long offset, unsigned long vector_len);
+private:
+    void thread_sort(size_t offset, size_t vector_len);
 
     inline std::pair<unsigned int, int> getMax();
 

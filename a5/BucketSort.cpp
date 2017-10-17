@@ -4,10 +4,7 @@
 
 #include "BucketSort.h"
 
-#include <algorithm>
-#include <cmath>
-#include <thread>
-#include <iostream>
+
 
 bool aLessB(unsigned int x, unsigned int y) {
     if (x == y) return false; // if the two numbers are the same then one is not less than the other
@@ -116,7 +113,7 @@ void BucketSort::merge_all(int total_thread, size_t step) {
     }
 
     unsigned smallest = 0;
-    for(auto i=0U; i < numbersToSort.size(); ++i){
+    for(auto i=0U   ; i < numbersToSort.size(); ++i){
         int smallest_index = -1;
 
         for(auto j=0; j < total_thread; ++j){
