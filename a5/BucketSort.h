@@ -12,7 +12,7 @@ class BucketSort {
 public:
     std::vector<unsigned int> numbersToSort;
 
-    void sort(unsigned int numCores);
+    void thread_sort(unsigned int offset, unsigned vector_len);
 
 private:
     // void split(std::size_t start, std::size_t end, std::vector<std::vector<unsigned int>>& , unsigned int numCores);

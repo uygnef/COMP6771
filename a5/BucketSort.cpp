@@ -40,7 +40,7 @@ bool aLessB(const unsigned int& x, const unsigned int& y, unsigned int pow) {
 }
 
 // TODO: replace this with a parallel version.
-void BucketSort::sort(unsigned int numCores) {
+void BucketSort::thread_sort(unsigned int offset, unsigned vector_len) {
     std::vector<std::vector<unsigned int>> radix_array;
     int max_digits = getMax().second;
 
@@ -52,17 +52,17 @@ void BucketSort::sort(unsigned int numCores) {
 
     for(int pos=1; pos <= max_digits; ++pos){
         radix_array.resize(11, std::vector<unsigned int>());
-        for(const auto& val: numbersToSort){
-            int num = get_digits_in_pos(val, pos, max_digits) + 1;
+        for(auto i=0; i < vector_len; ++i ){
+            int num = get_digits_in_pos(numbersToSort[i+offset], pos, max_digits) + 1;
             std::cout << "num is :" << num << std::endl;
-            radix_array[num].emplace_back(val);
+            radix_array[num].emplace_back(numbersToSort[i+offset]);
         }
         auto index = numbersToSort.size() - 1;
         for(const auto& i: radix_array){
             std::cout << "-----" << std::endl;
             for(const auto& k: i){
                 std::cout << "i: " << k << std::endl;
-                numbersToSort[index] = k;
+                numbersToSort[index + offset] = k;
                 --index;
             }
         }
