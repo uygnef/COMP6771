@@ -57,10 +57,10 @@ void BucketSort::sort(unsigned int numCores) {
             std::cout << "num is :" << num << std::endl;
             radix_array[num].emplace_back(val);
         }
-        auto index = max_digits - 1;
-        for(auto i: radix_array){
+        auto index = numbersToSort.size() - 1;
+        for(const auto& i: radix_array){
             std::cout << "-----" << std::endl;
-            for(auto k: i){
+            for(const auto& k: i){
                 std::cout << "i: " << k << std::endl;
                 numbersToSort[index] = k;
                 --index;
@@ -107,4 +107,3 @@ int BucketSort::get_digits_in_pos(unsigned int num, int pos, const int& max_pos)
     }
     return (num/temp) % 10;
 }
-

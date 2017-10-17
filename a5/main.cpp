@@ -6,8 +6,8 @@
 
 int main() {
 
-    unsigned int totalNumbers =	5;
-    unsigned int printIndex =	3;
+    unsigned int totalNumbers = 200;
+    unsigned int printIndex =	30;
 
     // use totalNumbers required as the seed for the random
     // number generator.
@@ -30,7 +30,7 @@ int main() {
 
     // print certain values from the buckets
     std::cout << "Demonstrating that all the numbers that start with 1 come first" << std::endl;
-    std::cout << pbs.numbersToSort[0] << " " << pbs.numbersToSort[printIndex - 10000]
+    std::cout << pbs.numbersToSort[0] << " " << pbs.numbersToSort[printIndex ]
               << " " << pbs.numbersToSort[printIndex] << " " << pbs.numbersToSort[pbs.numbersToSort.size() - 1]
               << std::endl;
 
