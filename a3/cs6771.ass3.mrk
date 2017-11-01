@@ -1,0 +1,796 @@
+
+!!section banner
+#######   ###    #####  #        #####   #####  #######
+#        #   #  #     # #    #  #     # #     # #
+#       # #   # #     # #    #  #     #       # #
+ #####  #  #  #  ###### #######  ######  #####   #####
+      # #   # #       #      #        #       #       #
+#     #  #   #  #     #      #  #     # #     # #     #
+ #####    ###    #####       #   #####   #####   #####
+
+5094935 Feng, Yu                                8543   COMPCS
+
+Submissions:-
+
+S 0     Thu Sep 21 14:19:54 2017        5094935 mon17a ass3 -1:-9
+S 0     Thu Sep 21 22:44:37 2017        5094935 mon17a ass3 -1:-1
+
+Fri Oct 20 00:07:41 2017                ## marimba.orchestra.cse.unsw.EDU.AU ##
+!!section listing
+-rw------- z5094935/z5094935 6955 2017-09-21 22:36 Graph.h
+-rw------- z5094935/z5094935 8270 2017-09-21 22:25 Graph.tem
+dos2unix: converting file Graph.h to Unix format ...
+
+===============================================================================
+-rw------- 1 cs6771 cs6771 6955 Oct 20 00:07 Graph.h
+===============================================================================
+
+     1  //
+     2  // Created by yu on 10/09/17.
+     3  //
+     4
+     5  #ifndef A3_GRAPH_H
+     6  #define A3_GRAPH_H
+     7
+     8  #include <algorithm>
+     9  #include <fstream>
+    10  #include <iostream>
+    11  #include <map>
+    12  #include <memory>
+    13  #include <ostream>
+    14  #include <set>
+    15  #include <vector>
+    16
+    17  namespace gdwg {
+    18
+    19      template <typename N, typename E>
+    20      class Graph{
+    21      public:
+    22          struct Node;
+    23          struct Edge;
+    24          struct EdgeCompare;
+    25
+    26          using Node_ptr = std::weak_ptr<Node>;
+    27          using Edge_ptr = std::weak_ptr<Edge>;
+    28
+    29          struct Node{
+    30              N val;
+    31              std::vector<Edge_ptr> out_edges;
+    32              std::vector<Edge_ptr> in_edges;
+    33              Node() = default;
+    34              Node(N val):val{val}{}
+    35
+    36              bool is_equal2(const N& a, const N& b) const{
+    37                  return !(a < b || b < a);
+    38              }
+    39
+    40              bool find_node(N dst){
+    41                  for(const auto& i : out_edges){
+    42                      if(!(i.expired()) && is_equal2(i.lock().get()->dst.lock().get()->val, dst)) {
+    43                          return true;
+    44                      }
+    45                  }
+    46                  return false;
+    47              }
+    48
+    49              unsigned long len(){
+    50
+    51                  for(auto i = out_edges.cbegin(); i != out_edges.cend();){
+    52                      if(i->expired()){
+    53                          out_edges.erase(i);
+    54                      }else{
+    55                          ++i;
+    56                      }
+    57                  }
+    58                  return out_edges.size();
+    59              }
+    60          };
+    61
+    62          struct Edge{
+    63              Node_ptr dst;
+    64              Node_ptr src;
+    65              E weight;
+    66
+    67              Edge(Node_ptr source, Node_ptr destination, E w):dst{destination}, src{source}, weight{w}{}
+    68
+    69              Edge() = delete;
+    70
+    71              ~Edge(){ dst.reset(); }
+    72
+    73          };
+    74
+    75          struct EdgeCompare{
+    76              /*
+    77               * make edge class comparable.
+    78               * first compare src than dst if all equal compare weight.
+    79               */
+    80              bool operator()(const std::shared_ptr<Edge>& a, const std::shared_ptr<Edge>& b){
+    81                  if( !is_equal(a.get()->src.lock().get()->val, b.get()->src.lock().get()->val)){
+    82                      return a.get()->src.lock().get()->val < b.get()->src.lock().get()->val;
+    83                  } else if( !is_equal(a.get()->dst.lock().get()->val, b.get()->dst.lock().get()->val)) {
+    84                      return a.get()->dst.lock().get()->val < b.get()->dst.lock().get()->val;
+    85                  }else{
+    86                      return a.get()->weight < b.get()->weight;
+    87                  }
+    88              }
+    89
+    90
+    91              bool operator()(const Edge_ptr& a, const Edge_ptr& b){
+    92                  if(!is_equal(a.lock().get()->src.lock().get()->val, b.lock().get()->src.lock().get()->val)){
+    93                      return a.lock().get()->src.lock().get()->val < b.lock().get()->src.lock().get()->val;
+    94                  }else if(! is_equal(a.lock().get()->dst.lock().get()->val, b.lock().get()->dst.lock().get()->val)) {
+    95                      return a.lock().get()->dst.lock().get()->val < b.lock().get()->dst.lock().get()->val;
+    96                  }else{
+    97                      return a.lock().get()->weight < b.lock().get()->weight;
+    98                  }
+    99              }
+   100          };
+   101
+   102          struct NodeCompare{
+   103              bool operator()(const Node_ptr& a, const Node_ptr& b){
+   104                  return a.lock().get()->val < b.lock().get()->val;
+   105              }
+   106          };
+   107
+   108          Edge_ptr is_in_edges(N src, N dst, E w){
+   109              for(const auto& i: edges){
+   110                  if(is_equal3( i.get()->weight , w) && is_equal( i.get()->src.lock().get()->val, src)
+   111                      && is_equal( i.get()->dst.lock().get()->val , dst)){
+   112                      return i;
+   113                  }
+   114              }
+   115              return {};
+   116          }
+   117
+   118          std::shared_ptr<Node> is_in_nodes(N name) const{
+   119              for(const auto& i:nodes){
+   120                  if(is_equal(i.get()->val, name)){
+   121                      return i;
+   122                  }
+   123              }
+   124              return {};
+   125          }
+   126
+   127          static bool is_equal(const N& a, const N& b){
+   128              return !(a < b || b < a);
+   129          }
+   130
+   131          bool is_equal3(const E& a, const E& b) const{
+   132              return !(a < b || b < a);
+   133          }
+   134
+   135          /*
+   136           * Graph own nodes and edges(stored shared pointer)...     nodes contain src and dst edges vectors(weak pointer)
+   137           *
+   138           * Graph own nodes and nodes own edges is a better structure...
+   139           * use set is for faster find... but I mess it up
+   140           */
+   141          std::set<std::shared_ptr<Node>, NodeCompare> nodes;
+   142          std::set<std::shared_ptr<Edge>, EdgeCompare> edges;
+   143
+   144          mutable typename std::set<std::shared_ptr<Node>, NodeCompare>::iterator iter = nodes.begin();
+   145
+   146          ~Graph(){
+   147              nodes.clear();
+   148              edges.clear();
+   149          }
+   150
+   151      public:
+   152
+   153          Graph(): nodes{}, edges{}{}
+   154
+   155          Graph(const Graph& g):nodes{}, edges{}{
+   156                  if(this != &g){
+   157                      this->clear();
+   158                     for(const auto& i: g.nodes){
+   159                         this->addNode(i->val);
+   160                     }
+   161                      for(const auto& i: g.edges){
+   162                          this->addEdge(i->src.lock().get()->val, i->dst.lock().get()->val, i->weight);
+   163                      }
+   164                  }
+   165          }
+   166
+   167          Graph(Graph &&g){
+   168              if(this != &g){
+   169                  this->clear();
+   170                  std::swap(this->nodes, g.nodes);
+   171                  std::swap(this->edges, g.edges);
+   172                  std::swap(this->iter, g.iter);
+   173              }
+   174          }
+   175
+   176          Graph& operator= (Graph&& g){
+   177              if(this != &g){
+   178                  this->clear();
+   179                  std::swap(this->nodes, g.nodes);
+   180                  std::swap(this->edges, g.edges);
+   181                  std::swap(this->iter, g.iter);
+   182              }
+   183              return *this;
+   184          }
+   185
+   186          Graph& operator= (const Graph& g){
+   187              if(this != &g){
+   188                  this->clear();
+   189                  for(const auto& i: g.nodes){
+   190                      this->addNode(i->val);
+   191                  }
+   192
+   193                  for(const auto& i:g.edges){
+   194                      this->addEdge(i->src.lock().get()->val, i->dst.lock().get()->val, i->weight);
+   195                  }
+   196              }
+   197              return *this;
+   198          }
+   199
+   200
+   201          bool addNode(const N&);
+   202
+   203          bool addEdge(const N& src, const N& dst, const E& w);
+   204
+   205          bool replace(const N& oldData, const N& newData);
+   206
+   207          void mergeReplace(const N& oldData, const N& newData);
+   208
+   209          void deleteNode(const N&) noexcept;
+   210
+   211          void deleteEdge(const N& src, const N& dst, const E& w) noexcept;
+   212
+   213          void clear() noexcept;
+   214
+   215          bool isNode(const N& val) const;
+   216
+   217          bool isConnected(const N& src, const N& dst) const;
+   218
+   219          void printNodes(std::ostream& os = std::cout) const;
+   220
+   221          void printEdges(const N& val, std::ostream& os = std::cout) const;
+   222
+   223          void begin() const;
+   224
+   225          bool end() const;
+   226
+   227          void next() const;
+   228
+   229          const N& value() const;
+   230
+   231      };
+   232
+   233      #include "Graph.tem"
+   234
+   235  }
+   236
+   237  #endif //A3_GRAPH_H
+
+dos2unix: converting file Graph.tem to Unix format ...
+
+===============================================================================
+-rw------- 1 cs6771 cs6771 8270 Oct 20 00:07 Graph.tem
+===============================================================================
+
+     1  template <typename N, typename E>
+     2  bool Graph<N, E>::addNode(const N& input_node) {
+     3      return nodes.insert(std::make_shared<Node>(Node{input_node})).second;
+     4  }
+     5
+     6  template <typename N, typename E>
+     7  bool Graph<N, E>::addEdge(const N& src, const N& dst, const E& w){
+     8      /*
+     9       * create a new node object, find if it in the nodes set.
+    10       */
+    11      auto src_node = is_in_nodes(src);
+    12      if(src_node == nullptr){
+    13          throw std::runtime_error("add Edge: source node does not exist.");
+    14      }
+    15      auto dst_node = is_in_nodes(dst);
+    16      if(dst_node == nullptr){
+    17          throw std::runtime_error("add Edge: destination node does not exist.");
+    18      }
+    19
+    20      //check if the new edge is already in the edges sets.
+    21      auto new_edge = std::make_shared<Edge>(Edge{src_node ,dst_node, w});
+    22      bool is_unique = edges.insert(new_edge).second;
+    23      if(!is_unique){
+    24          return false;
+    25      }
+    26
+    27      auto a = Edge_ptr(new_edge);
+    28      src_node.get()->out_edges.push_back(a);
+    29      dst_node.get()->in_edges.push_back(a);
+    30      return true;
+    31  }
+    32
+    33
+    34
+    35  template <typename N, typename E>
+    36  bool Graph<N, E>::replace(const N& oldData, const N& newData){
+    37      const auto& old_Node = is_in_nodes(oldData);
+    38      if(old_Node == nullptr){
+    39          throw std::runtime_error("replace: old data node does not exist.");
+    40      }
+    41
+    42      const auto& new_node = is_in_nodes(newData);
+    43      if(new_node != nullptr){
+    44          return false;
+    45      }
+    46
+    47
+    48      std::vector<std::shared_ptr<Edge>> update_cache;
+    49      /*
+    50       * cache all egdes which contain old node...
+    51       * erase and re-insert to set them into right position...(Vector is a better container for nodes and edges...)
+    52       */
+    53
+    54      for(auto i = edges.begin(); i != edges.end();){
+    55          if(is_equal(i->get()->src.lock().get()->val, oldData) || is_equal(i->get()->dst.lock().get()->val, oldData)){
+    56              update_cache.push_back(*i);
+    57              edges.erase(i);
+    58          }
+    59          ++i;
+    60      }
+    61
+    62      /*
+    63      * Change the val of Node object.
+    64      * All pointers keep the same.
+    65      * delete and insert is to keep the correct order in nodes set.
+    66      */
+    67      std::shared_ptr<Node> new_pointer = old_Node;
+    68
+    69      nodes.erase(old_Node);
+    70      new_pointer.get()->val = newData;
+    71      nodes.insert(new_pointer);
+    72
+    73      for(const auto& i: update_cache){
+    74          edges.insert(i);
+    75      }
+    76      return true;
+    77  }
+    78
+    79  /*
+    80   * For oldNode, insert all it's out edge into new node
+    81   *              change all it's in edge dst to new node
+    82   *              also need to check duplicated edge.
+    83   */
+    84  template <typename N, typename E>
+    85  void Graph<N, E>::mergeReplace(const N &oldData, const N &newData) {
+    86      /*
+    87       * check if the new node and old node are valid.
+    88       */
+    89      const auto& old_node = is_in_nodes(oldData);
+    90      if(old_node == nullptr){
+    91          throw std::runtime_error("mergeReplace: old data node does not exist.");
+    92      }
+    93
+    94      if(is_equal(oldData, newData)){
+    95          return;
+    96      }
+    97
+    98      const auto& new_node = is_in_nodes(newData);
+    99      if(new_node == nullptr){
+   100          throw std::runtime_error("mergeReplace: new data node does not exist.");
+   101      }
+   102
+   103      /*
+   104       * change the dst node of in edge and the src node of out edge to new node.
+   105       */
+   106      for(const auto &in_edge: old_node.get()->in_edges) {
+   107          if(in_edge.expired()){
+   108              continue;
+   109          }
+   110          const auto& result_pointer = is_in_edges(in_edge.lock().get()->src.lock().get()->val, new_node.get()->val, in_edge.lock().get()->weight).lock();
+   111          if ( result_pointer != nullptr) {
+   112              edges.erase(in_edge.lock());
+   113          } else {
+   114
+   115              auto in_edge_tmp = in_edge.lock();
+   116              edges.erase(in_edge.lock());
+   117
+   118              in_edge_tmp.get()->dst = new_node;
+   119              edges.insert(in_edge_tmp);
+   120              new_node.get()->in_edges.push_back(Edge_ptr(in_edge_tmp));
+   121          }
+   122      }
+   123
+   124      for(const auto &out_edge: old_node.get()->out_edges) {
+   125          if(out_edge.expired()){
+   126              continue;
+   127          }
+   128          const auto& result_pointer = is_in_edges(new_node.get()->val, out_edge.lock().get()->dst.lock().get()->val, out_edge.lock().get()->weight).lock();
+   129          if (result_pointer != nullptr) {
+   130              edges.erase(out_edge.lock());
+   131          } else {
+   132              auto out_edge_tmp = out_edge.lock();
+   133              edges.erase(out_edge.lock());
+   134
+   135              out_edge_tmp.get()->src = new_node;
+   136              edges.insert(out_edge_tmp);
+   137              new_node.get()->out_edges.push_back(Edge_ptr(out_edge_tmp));
+   138          }
+   139      }
+   140
+   141      nodes.erase(old_node);
+   142
+   143  }
+   144
+   145  template <typename N, typename E>
+   146  void Graph<N, E>::deleteNode(const N &node_name) noexcept {
+   147      const auto& node = is_in_nodes(node_name);
+   148
+   149      if(node == nullptr){
+   150          return;
+   151      }
+   152
+   153      for(const auto& i: node.get()->out_edges){
+   154          if(!i.expired()){
+   155              edges.erase(i.lock());
+   156          }
+   157      }
+   158
+   159      for(const auto& i: node.get()->in_edges){
+   160          if(!i.expired()){
+   161              edges.erase(i.lock());
+   162          }
+   163      }
+   164      nodes.erase(node);
+   165  }
+   166
+   167
+   168  template <typename N, typename E>
+   169  void Graph<N, E>::deleteEdge(const N &src, const N &dst, const E &w)noexcept {
+   170      for(auto i=edges.begin(); i != edges.end();){
+   171          if(is_equal3( i->get()->weight , w) && is_equal( i->get()->dst.lock().get()->val, dst)
+   172             && is_equal(i->get()->src.lock().get()->val, src)){
+   173              edges.erase(i);
+   174              return;
+   175          }
+   176          ++i;
+   177      }
+   178  }
+   179
+   180  template <typename N, typename E>
+   181  void Graph<N, E>::clear() noexcept {
+   182      edges.clear();
+   183      nodes.clear();
+   184      iter = nodes.begin();
+   185  }
+   186
+   187  template <typename N, typename E>
+   188  bool Graph<N, E>::isNode(const N &val) const {
+   189      const auto& ret =  is_in_nodes(val);
+   190      return ret.get() != nullptr;
+   191  }
+   192
+   193  template <typename N, typename E>
+   194  bool Graph<N, E>::isConnected(const N &src, const N &dst) const {
+   195      const auto& src_node = is_in_nodes(src);
+   196      if(src_node.get() == nullptr){
+   197          throw std::runtime_error("is Connected: source node does not exist.");
+   198      }
+   199
+   200      const auto& dst_node = is_in_nodes(dst);
+   201      if(dst_node.get() == nullptr){
+   202          throw std::runtime_error("is Connected: destination does not exist.");
+   203      }
+   204
+   205      return src_node.get()->find_node(dst);
+   206  }
+   207
+   208  template <typename N, typename E>
+   209  void Graph<N, E>::printNodes(std::ostream& os) const {
+   210      using Node_print = std::pair<unsigned long, N>;
+   211      struct compare{
+   212          bool operator()(const Node_print& a, const Node_print& b){
+   213              if(a.first == b.first){
+   214                  return a.second < b.second;
+   215              }else{
+   216                  return a.first < b.first;
+   217              }
+   218          }
+   219      };
+   220      std::set<Node_print, compare> orderd_nodes;
+   221      for(const auto& i:nodes){
+   222          orderd_nodes.insert(std::make_pair(i.get()->len(), i.get()->val));
+   223      }
+   224      for(const auto& i: orderd_nodes){
+   225          os << i.second << std::endl;
+   226      }
+   227  }
+   228
+   229  template <typename N, typename E>
+   230  void Graph<N, E>::printEdges(const N &val, std::ostream& os) const {
+   231      const auto& node =  is_in_nodes(val);
+   232      if(node.get() == nullptr){
+   233          throw std::runtime_error("printEdge: node does not exist.");
+   234      }
+   235
+   236      using Edge_print = std::pair<E, N>;
+   237      struct compare{
+   238          bool operator()(const Edge_print & a, const Edge_print & b) {
+   239              if(a.first < b.first || b.first < a.first){
+   240                  return a.first < b.first;
+   241              } else{
+   242                  return a.second < b.second;
+   243              }
+   244          }
+   245      };
+   246
+   247      std::set<Edge_print, compare> print_edge{};
+   248      os << "Edges attached to Node " << node.get()->val << std::endl;
+   249      for(const auto& i: node.get()->out_edges){
+   250          if(!i.expired()) {
+   251              auto first = i.lock().get()->weight;
+   252              auto ma = i.lock().get()->dst;
+   253              auto second = ma.lock().get()->val;
+   254              auto temp = std::make_pair(first, second);
+   255              print_edge.insert(temp);
+   256          }
+   257      }
+   258
+   259      if(print_edge.size() == 0){
+   260          os << "(null)" << std::endl;
+   261      }
+   262      for(const auto& i: print_edge){
+   263          os << i.second << " " << i.first << std::endl;
+   264      }
+   265
+   266  }
+   267
+   268  template <typename N, typename E>
+   269  void Graph<N, E>::begin() const {
+   270      iter = nodes.begin();
+   271  }
+   272
+   273  template <typename N, typename E>
+   274  bool Graph<N, E>::end() const {
+   275      return iter == nodes.end();
+   276  }
+   277
+   278  template <typename N, typename E>
+   279  void Graph<N, E>::next() const {
+   280      ++iter;
+   281  }
+   282
+   283  template <typename N, typename E>
+   284  const N &Graph<N, E>::value() const {
+   285      return iter->get()->val;
+   286  }
+Compiling with -Wall -Werror -O2 ...
+!!section tests
+** Test 1: test1.cpp - Basic Functionality and Header Guards
+--------------------------------
+** Test passed
+--------------------------------
+** Test 2: test2.cpp - Add and delete up to 75 nodes (3 seconds allowed)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 3: test2a.cpp - Add and delete up to 750 nodes (3 seconds allowed)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 4: test2b.cpp - Add and delete up to 7500 nodes (3 seconds allowed)
+--------------------------------
+** Test failed (student's output on the left, expected on the right). Output difference:-
+                                                              > Edges attached to Node 10111
+                                                              > 14675 5690
+                                                              > 20486 6854
+                                                              > 10455 13883
+--------------------------------
+** Test 5: test3.cpp - Add, delete, custom iterator 150 nodes (3 seconds allowed)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 6: test3a.cpp - Add, delete, custom iterator 1500 nodes (3 seconds allowed)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 7: test3b.cpp - Add, delete, custom iterator 15000 nodes (3 seconds allowed)
+--------------------------------
+** Test failed (student's output on the left, expected on the right). Output difference:-
+inserted                                                        inserted
+deleted                                                         deleted
+inserted more                                                   inserted more
+iterated                                                        iterated
+                                                              > added edges
+                                                              > Edges attached to Node 25299
+                                                              > 33469 11655
+                                                              > 10359 15374
+                                                              > 14490 24393
+--------------------------------
+** Test 8: test4.cpp - Add and replace 50 nodes (3 seconds allowed)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 9: test4a.cpp - Add and replace 500 nodes (3 seconds allowed)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 10: test4b.cpp - Add and replace 5000 nodes (3 seconds allowed)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 11: test5.cpp - Add and merge replace 50 nodes (3 seconds allowed)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 12: test5a.cpp - Add and merge replace 500 nodes (3 seconds allowed)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 13: test5b.cpp - Add and merge replace 5000 nodes (3 seconds allowed)
+--------------------------------
+** Test failed (student's output on the left, expected on the right). Output difference:-
+                                                              > Edges attached to Node 18234
+                                                              > 7387 9330
+                                                              > 5741 14715
+                                                              > 6689 20517
+                                                              > Edges attached to Node 3571
+                                                              > 7355 15002
+                                                              > 3734 24077
+                                                              > 23817 24404
+                                                              > Edges attached to Node 9250
+                                                              > 8912 3259
+                                                              > 12023 6491
+                                                              > 13635 9741
+                                                              > Edges attached to Node 22518
+                                                              > (null)
+                                                              > Edges attached to Node 22518
+                                                              > 8912 3259
+                                                              > 12023 6491
+                                                              > 13635 9741
+                                                              > Edges attached to Node 24241
+                                                              > (null)
+                                                              > Edges attached to Node 24241
+                                                              > 8912 3259
+                                                              > 12023 6491
+                                                              > 13695 9741
+--------------------------------
+** Test 14: test6.cpp - Performance: Insert, delete 10000 nodes (3 seconds allowed)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 15: test7.cpp - 500 nodes, fake iterators (3 seconds allowed)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 16: test8.cpp - Custom node data type without == (3 seconds allowed)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 17: test11.cpp - Custom edge data type without == (3 seconds allowed)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 18: test12.cpp - move onto self
+--------------------------------
+** Test passed
+--------------------------------
+** Test 19: test31.cpp - copy onto self
+--------------------------------
+** Test passed
+--------------------------------
+** Test 20: test15.cpp - Const Correctness (3 seconds allowed)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 21: test16.cpp -- graph construction and node insertion
+--------------------------------
+** Test passed
+--------------------------------
+** Test 22: test17.cpp - edge insertion and printing order
+--------------------------------
+** Test passed
+--------------------------------
+** Test 23: test18.cpp -- error handling
+--------------------------------
+** Test passed
+--------------------------------
+** Test 24: test19.cpp - data integrity
+--------------------------------
+** Test passed
+--------------------------------
+** Test 25: test20.cpp -- data replacement
+--------------------------------
+** Test passed
+--------------------------------
+** Test 26: test21.cpp -- merge replacement
+--------------------------------
+** Test passed
+--------------------------------
+** Test 27: test22.cpp -- data deletion
+--------------------------------
+** Test passed
+--------------------------------
+** Test 28: Copy construction
+--------------------------------
+** Test passed
+--------------------------------
+** Test 29: Copy assignment
+--------------------------------
+** Test passed
+--------------------------------
+** Test 30: Move construction
+--------------------------------
+** Test passed
+--------------------------------
+** Test 31: Move assignment
+--------------------------------
+** Test passed
+--------------------------------
+** Test 32: test26.cpp - mergeReplace() (a complex case)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 33: test27.cpp - printNodes() and printEdges()
+--------------------------------
+** Test passed
+--------------------------------
+** Test 34: test28.cpp - clear()
+--------------------------------
+** Test passed
+--------------------------------
+!!section assess
+
+!!perftab       ** PERFORMANCE ANALYSIS **
+
+Test  1 (5)     test1.cpp - Basic Functionality and Header Guards ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test  2 (2.5)   test2.cpp - Add and delete up to 75 nodes (3 seconds allowed) ..  ..  ..  ..  !!PASSed
+Test  3 (1.5)   test2a.cpp - Add and delete up to 750 nodes (3 seconds allowed)   ..  ..  ..  !!PASSed
+Test  4 (1.5)   test2b.cpp - Add and delete up to 7500 nodes (3 seconds allowed)  ..  ..  ..  !!FAILed (-1.5)
+Test  5 (1.5)   test3.cpp - Add, delete, custom iterator 150 nodes (3 seconds allowed) .  ..  !!PASSed
+Test  6 (1.5)   test3a.cpp - Add, delete, custom iterator 1500 nodes (3 seconds allowed)  ..  !!PASSed
+Test  7 (1.5)   test3b.cpp - Add, delete, custom iterator 15000 nodes (3 seconds allowed) ..  !!FAILed (-1.5)
+Test  8 (2.5)   test4.cpp - Add and replace 50 nodes (3 seconds allowed)  ..  ..  ..  ..  ..  !!PASSed
+Test  9 (1.5)   test4a.cpp - Add and replace 500 nodes (3 seconds allowed) .  ..  ..  ..  ..  !!PASSed
+Test 10 (1.5)   test4b.cpp - Add and replace 5000 nodes (3 seconds allowed)   ..  ..  ..  ..  !!PASSed
+Test 11 (2.5)   test5.cpp - Add and merge replace 50 nodes (3 seconds allowed) .  ..  ..  ..  !!PASSed
+Test 12 (1.5)   test5a.cpp - Add and merge replace 500 nodes (3 seconds allowed)  ..  ..  ..  !!PASSed
+Test 13 (1.5)   test5b.cpp - Add and merge replace 5000 nodes (3 seconds allowed) ..  ..  ..  !!FAILed (-1.5)
+Test 14 (2.5)   test6.cpp - Performance: Insert, delete 10000 nodes (3 seconds allowed)   ..  !!PASSed
+Test 15 (2.5)   test7.cpp - 500 nodes, fake iterators (3 seconds allowed) ..  ..  ..  ..  ..  !!PASSed
+Test 16 (3)     test8.cpp - Custom node data type without == (3 seconds allowed)  ..  ..  ..  !!PASSed
+Test 17 (3)     test11.cpp - Custom edge data type without == (3 seconds allowed) ..  ..  ..  !!PASSed
+Test 18 (2)     test12.cpp - move onto self   ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 19 (2)     test31.cpp - copy onto self   ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 20 (1.5)   test15.cpp - Const Correctness (3 seconds allowed) .  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 21 (1.5)   test16.cpp -- graph construction and node insertion   ..  ..  ..  ..  ..  ..  !!PASSed
+Test 22 (1.5)   test17.cpp - edge insertion and printing order .  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 23 (1.5)   test18.cpp -- error handling  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 24 (1.5)   test19.cpp - data integrity   ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 25 (1.5)   test20.cpp -- data replacement .  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 26 (1.5)   test21.cpp -- merge replacement   ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 27 (1.5)   test22.cpp -- data deletion   ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 28 (2.5)   Copy construction ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 29 (2.5)   Copy assignment   ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 30 (2.5)   Move construction ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 31 (2.5)   Move assignment   ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 32 (3)     test26.cpp - mergeReplace() (a complex case)  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 33 (2.5)   test27.cpp - printNodes() and printEdges() .  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 34 (1.5)   test28.cpp - clear()  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+
+!!perfmark      ** TOTAL PERFORMANCE MARK:    65.5/70
+
+!!marktab       **  MARKER'S  ASSESSMENT  **
+
+Comments and code formatting/layout/style
+                                          (6)   6
+
+C++ Feature Usage (STL, Exception Handling, etc)
+                                          (5)   5
+
+Use of Smart Pointers ..  ..  ..  ..  ..  (8)   8
+
+Template Class Design and Nested Classes  (6)   6
+
+Lamda Functions, Trailing Returns, decltype
+                                          (5)   5
+
+!!finalmark     **  FINAL  ASSIGNMENT  MARK:    95.5/100
+
+5094935 Feng, Yu                                8543   COMPCS
+
+
+Marked by z5019791 on Wed Oct 25 17:35:43 2017
+
+
