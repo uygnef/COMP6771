@@ -1,0 +1,3 @@
+/home/yu/6771/exam/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/yu/6771/exam/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/yu/6771/exam/cmake-build-debug/CMakeFiles/exam.dir
