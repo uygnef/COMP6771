@@ -1,0 +1,1413 @@
+
+!!section banner
+#######   ###    #####  #        #####   #####  #######
+#        #   #  #     # #    #  #     # #     # #
+#       # #   # #     # #    #  #     #       # #
+ #####  #  #  #  ###### #######  ######  #####   #####
+      # #   # #       #      #        #       #       #
+#     #  #   #  #     #      #  #     # #     # #     #
+ #####    ###    #####       #   #####   #####   #####
+
+5094935 Feng, Yu                                8543   COMPCS
+
+Submissions:-
+
+S 0     Mon Oct  9 16:09:38 2017        5094935 mon17a ass4 -6:-7
+
+Thu Oct 19 21:54:04 2017                ## marimba.orchestra.cse.unsw.EDU.AU ##
+!!section listing
+-rw------- z5094935/z5094935 15504 2017-10-09 16:09 btree.h
+-rw------- z5094935/z5094935  5732 2017-10-09 15:58 btree_iterator.h
+dos2unix: converting file btree.h to Unix format ...
+
+===============================================================================
+-rw------- 1 cs6771 cs6771 15504 Oct 19 21:54 btree.h
+===============================================================================
+
+     1  /**
+     2   * The btree is a linked structure which operates much like
+     3   * a binary search tree, save the fact that multiple client
+     4   * elements are stored in a single node.  Whereas a single element
+     5   * would partition the tree into two ordered subtrees, a node
+     6   * that stores m client elements partition the tree
+     7   * into m + 1 sorted subtrees.
+     8   */
+     9
+    10  #ifndef BTREE_H
+    11  #define BTREE_H
+    12  #include <cstddef>
+    13  #include <exception>
+    14  #include <iostream>
+    15  #include <memory>
+    16  #include <queue>
+    17  #include <utility>
+    18  #include <vector>
+    19
+    20  // we better include the iterator
+    21  #include "btree_iterator.h"
+    22
+    23  // we do this to avoid compiler errors about non-template friends
+    24  // what do we do, remember? :)
+    25
+    26  template <typename T>
+    27  class btree {
+    28   public:
+    29    /** Hmm, need some iterator typedefs here... friends? **/
+    30
+    31      using iterator = btree_iterator<T> ;
+    32      friend iterator;
+    33
+    34      using const_iterator = btree_iterator<T, std::add_const> ;
+                                                    ^
+                                                    + ========================================== +
+                                                    + could've just done btree_iterator<const T> +
+                                                    + ========================================== +
+    35      friend const_iterator ;
+    36
+    37      using reverse_iterator =  std::reverse_iterator<iterator> ;
+    38      friend reverse_iterator;
+    39
+    40      using const_reverse_iterator = std::reverse_iterator<const_iterator> ;
+    41      friend const_reverse_iterator;
+    42    /**
+    43     * Constructs an empty btree.  Note that
+    44     * the elements stored in your btree must
+    45     * have a well-defined zero-arg constructor,
+    46     * copy constructor, operator=, and destructor.
+    47     * The elements must also know how to order themselves
+    48     * relative to each other by implementing operator<
+    49     * and operator==. (These are already implemented on
+    50     * behalf of all built-ins: ints, doubles, strings, etc.)
+    51     *
+    52     * @param maxNodeElems the maximum number of elements
+    53     *        that can be stored in each B-Tree node
+    54     */
+    55    btree(size_t maxNodeElems = 40): max_size{maxNodeElems}{
+    56        root = std::make_shared<Node>(Node(maxNodeElems));
+    57    }
+    58
+    59    /**
+    60     * The copy constructor and  assignment operator.
+    61     * They allow us to pass around B-Trees by value.
+    62     * Although these operations are likely to be expensive
+    63     * they make for an interesting programming exercise.
+    64     * Implement these operations using value semantics and
+    65     * make sure they do not leak memory.
+    66     */
+    67
+    68    /**
+    69     * Copy constructor
+    70     * Creates a new B-Tree as a copy of original.
+    71     *
+    72     * @param original a const lvalue reference to a B-Tree object
+    73     */
+    74    btree(const btree<T>& original);
+    75
+    76    /**
+    77     * Move constructor
+    78     * Creates a new B-Tree by "stealing" from original.
+    79     *
+    80     * @param original an rvalue reference to a B-Tree object
+    81     */
+    82    btree(btree<T>&& original) noexcept;
+    83
+    84
+    85    /**
+    86     * Copy assignment
+    87     * Replaces the contents of this object with a copy of rhs.
+    88     *
+    89     * @param rhs a const lvalue reference to a B-Tree object
+    90     */
+    91    btree<T>& operator=(const btree<T>& rhs);
+    92
+    93    /**
+    94     * Move assignment
+    95     * Replaces the contents of this object with the "stolen"
+    96     * contents of original.
+    97     *
+    98     * @param rhs a const reference to a B-Tree object
+    99     */
+   100    btree<T>& operator=(btree<T>&& rhs);
+   101
+   102    /**
+   103     * Puts a breadth-first traversal of the B-Tree onto the output
+   104     * stream os. Elements must, in turn, support the output operator.
+   105     * Elements are separated by space. Should not output any newlines.
+   106     *
+   107     * @param os a reference to a C++ output stream
+   108     * @param tree a const reference to a B-Tree object
+   109     * @return a reference to os
+   110     */
+   111    friend std::ostream& operator<< (std::ostream& os, const btree<T>& tree){
+   112        std::queue<std::shared_ptr<Node>> queue;
+   113        queue.push(tree.root);
+   114        while(!queue.empty()){
+   115            tree.print_tree(os, queue);
+   116        }
+   117        return os;
+   118    };
+   119
+   120
+   121
+   122    /**
+   123     * The following can go here
+   124     * -- begin()
+   125     * -- end()
+   126     * -- rbegin()
+   127     * -- rend()
+   128     * -- cbegin()
+   129     * -- cend()
+   130     * -- crbegin()
+   131     * -- crend()
+   132     */
+   133
+   134      iterator begin() const;
+   135      inline iterator end() const{ return btree_iterator<T>(this, nullptr, 0);}
+   136      reverse_iterator            rbegin()        const;
+   137      reverse_iterator            rend()          const;
+   138      const_iterator                      cbegin()        const;
+   139      const_iterator                      cend()          const;
+   140      const_reverse_iterator      crbegin()       const;
+   141      const_reverse_iterator      crend()         const;
+   142
+   143    /**
+   144      * Returns an iterator to the matching element, or whatever
+   145      * the non-const end() returns if the element could
+   146      * not be found.
+   147      *
+   148      * @param elem the client element we are trying to match.  The elem,
+   149      *        if an instance of a true class, relies on the operator< and
+   150      *        and operator== methods to compare elem to elements already
+   151      *        in the btree.  You must ensure that your class implements
+   152      *        these things, else code making use of btree<T>::find will
+   153      *        not compile.
+   154      * @return an iterator to the matching element, or whatever the
+   155      *         non-const end() returns if no such match was ever found.
+   156      */
+   157      iterator find(const T& elem);
+   158
+   159    /**
+   160      * Identical in functionality to the non-const version of find,
+   161      * save the fact that what's pointed to by the returned iterator
+   162      * is deemed as const and immutable.
+   163      *
+   164      * @param elem the client element we are trying to match.
+   165      * @return an iterator to the matching element, or whatever the
+   166      *         const end() returns if no such match was ever found.
+   167      */
+   168      const_iterator find(const T& elem) const;
+   169
+   170    /**
+   171      * Operation which inserts the specified element
+   172      * into the btree if a matching element isn't already
+   173      * present.  In the event where the element truly needs
+   174      * to be inserted, the size of the btree is effectively
+   175      * increases by one, and the pair that gets returned contains
+   176      * an iterator to the inserted element and true in its first and
+   177      * second fields.
+   178      *
+   179      * If a matching element already exists in the btree, nothing
+   180      * is added at all, and the size of the btree stays the same.  The
+   181      * returned pair still returns an iterator to the matching element, but
+   182      * the second field of the returned pair will store false.  This
+   183      * second value can be checked to after an insertion to decide whether
+   184      * or not the btree got bigger.
+   185      *
+   186      * The insert method makes use of T's zero-arg constructor and
+   187      * operator= method, and if these things aren't available,
+   188      * then the call to btree<T>::insert will not compile.  The implementation
+   189      * also makes use of the class's operator== and operator< as well.
+   190      *
+   191      * @param elem the element to be inserted.
+   192      * @return a pair whose first field is an iterator positioned at
+   193      *         the matching element in the btree, and whose second field
+   194      *         stores true if and only if the element needed to be added
+   195      *         because no matching element was there prior to the insert call.
+   196      */
+   197      std::pair<iterator, bool> insert(const T& elem);
+   198
+   199    /**
+   200      * Disposes of all internal resources, which includes
+   201      * the disposal of any client objects previously
+   202      * inserted using the insert operation.
+   203      * Check that your implementation does not leak memory!
+   204      */
+   205    ~btree(){
+   206        max_size = 0;
+   207        root.get()->elems.clear();
+   208        root.get()->children.clear();
+   209    };
+   210
+   211
+   212  // The details of your implementation go here
+   213  struct Node{
+   214      friend btree;
+   215
+   216
+   217      Node(size_t max_size): elems{}, max_size{max_size}, children(1) {}  //chilren size = elems size + 1
+   218      Node(T val, size_t max_size): elems{val}, max_size{max_size}, children(2){}
+   219      Node(T val, iterator parent, size_t max_size):
+   220              elems{val}, parent{parent}, max_size{max_size}, children(2){}
+   221
+   222      ~Node(){
+   223          elems.clear();
+   224          children.clear();
+   225      }
+   226
+   227      inline bool is_full(){ return elems.size() == max_size;}
+   228      inline size_t size(){ return elems.size();}
+   229
+   230      //copy value if vector is full, push back.
+   231      inline void copy_elem_insert(const size_t& i, T val){
+   232          if(i < size()){
+   233              elems[i] = val;
+   234          }else{
+   235              elems.push_back(val);
+   236          }
+   237      }
+   238      inline void copy_child_insert(const size_t& i, const std::shared_ptr<Node>& ch){
+   239          if(i < children.size()){
+   240              children[i] = ch;
+   241          }else{
+   242              children.push_back(ch);
+   243          }
+   244      }
+   245      std::pair<bool, size_t> find(T) const;
+   246
+   247      std::vector<T> elems;
+   248      iterator parent;
+   249      size_t max_size;
+   250      std::vector<typename std::shared_ptr<Node>> children;
+   251  };
+   252
+   253  private:
+   254
+   255      void print_tree(std::ostream& os, std::queue<typename std::shared_ptr<Node>>& node_queue) const {
+   256
+   257          auto now_pointer = node_queue.front();
+   258          node_queue.pop();
+   259          for(const auto& i: now_pointer.get()->elems){
+   260              os << i << " ";
+   261          }
+   262          for(const auto& i: now_pointer.get()->children){
+   263              if(i != nullptr){
+   264                  node_queue.push(i);
+   265              }
+   266          }
+   267      }
+   268
+   269      void copy_helper(const std::shared_ptr<Node>& old, std::shared_ptr<Node>& new_list);
+   270      iterator pre_end() const;
+   271
+   272      size_t max_size;
+   273      std::shared_ptr<Node> root;
+   274  };
+   275
+   276  template <typename T>
+   277  std::pair<bool, size_t> btree<T>::Node::find(T key) const{
+   278      size_t i;
+   279      for(i = 0 ; i < elems.size(); ++i){
+   280          if(elems[i] == key){
+   281              return std::make_pair(true, i);
+   282          }
+   283          if(key < elems[i]){
+   284              return std::make_pair(false, i);
+   285          }
+   286      }
+   287   //   std::cout << "find key: "<< key << " position: " << i << std::endl;
+   288      return std::make_pair(false, i);
+   289  }
+   290
+   291
+   292
+   293  template <typename T>
+   294  std::pair<btree_iterator<T>, bool> btree<T>::insert(const T &elem) {
+   295      auto temp_node = root;
+   296      while(true){
+   297          if(temp_node.get()->is_full()){
+   298              auto result_pair = temp_node.get()->find(elem);
+   299              if(result_pair.first) {
+   300                  return std::make_pair(btree_iterator<T>(this, temp_node, result_pair.second), false);
+   301              }
+   302              if(temp_node.get()->children[result_pair.second] == nullptr){
+   303                  auto child_node = std::make_shared<Node>(Node(elem, max_size));
+   304                  temp_node.get()->children[result_pair.second] = child_node;
+   305                  child_node.get()->parent = btree_iterator<T>(this, temp_node, result_pair.second);
+   306                  btree_iterator<T> iter(this, temp_node->children[result_pair.second], 0);
+   307                  return std::make_pair(iter, true);
+   308              }
+   309              temp_node = temp_node->children[result_pair.second];
+   310          }else{
+   311              auto result_pair = temp_node.get()->find(elem);
+   312              if(result_pair.first){
+   313                  return std::make_pair(btree_iterator<T>(this, temp_node, result_pair.second), false);
+   314              }
+   315              const auto& temp_iter = temp_node.get()->elems.begin() + result_pair.second;
+   316              temp_node.get()->elems.insert(temp_iter, elem);
+   317              /*
+   318               * Node can not be remove, so if parent node is not full, all children of this not are nullptr.
+   319               *   we do not need to add new elem's child into right place.
+   320               */
+   321              temp_node.get()->children.push_back(nullptr);
+   322              return std::make_pair(btree_iterator<T>(this ,temp_node, result_pair.second), true);
+   323          }
+   324      }
+   325  }
+   326
+   327  template <typename T>
+   328  btree<T>::btree(const btree<T> &original) {
+   329      max_size = original.max_size;
+   330      root = std::make_shared<Node>(Node(max_size));
+   331      copy_helper(original.root, root);
+   332  }
+   333
+   334  template <typename T>
+   335  void btree<T>::copy_helper(const std::shared_ptr<Node>& old, std::shared_ptr<Node>& new_list) {
+   336      size_t i;
+   337      for(i = 0; i < old.get()->elems.size(); ++i){
+   338          new_list.get()->copy_elem_insert(i, old.get()->elems[i]);
+   339      }
+   340
+   341      for(i=0; i < old.get()->children.size(); ++i){
+   342          if(old.get()->children[i] == nullptr){
+   343              new_list.get()->copy_child_insert(i, nullptr);
+   344          } else {
+   345              auto new_child_node = std::make_shared<Node>(Node(old.get()->max_size));
+   346              new_child_node.get()->parent = btree_iterator<T>(this, new_list, i);
+   347              new_list.get()->copy_child_insert(i, new_child_node);
+   348              copy_helper(old.get()->children[i], new_child_node);
+   349          }
+   350      }
+   351  }
+   352
+   353
+   354  template <typename T>
+   355  btree<T>::btree(btree<T> &&original) noexcept {
+   356      root = std::make_shared<Node>(Node(0));
+   357      max_size = 0;
+   358      std::swap(original.root, root);
+   359      std::swap(original.max_size, max_size);
+   360  }
+   361
+   362  template <typename T>
+   363  btree<T> &btree<T>::operator=(const btree<T> &rhs) {
+   364      if(this == &rhs){
+   365          return *this;
+   366      }
+   367      root.get()->elems.clear();
+   368      root.get()->children.clear();
+   369      max_size = rhs.max_size;
+   370      copy_helper(rhs.root, root);
+   371      return *this;
+   372  }
+   373
+   374  template <typename T>
+   375  btree<T> &btree<T>::operator=(btree<T> &&rhs) {
+   376      if(this == &rhs){
+   377          return *this;
+   378      }
+   379      root.get()->elems.clear();
+   380      root.get()->children.clear();
+   381      max_size = 0;
+   382
+   383      std::swap(root, rhs.root);
+   384      std::swap(max_size, rhs.max_size);
+   385
+   386      return *this;
+   387  }
+   388
+   389  template <typename T>
+   390  typename btree<T>::iterator btree<T>::find(const T &elem)  {
+   391      auto temp_node = root;
+   392      size_t i;
+   393      while(temp_node != nullptr){
+   394          for(i = 0; i < temp_node.get()->elems.size(); ++i){
+   395              if(temp_node.get()->elems[i] == elem){
+   396                  return btree<T>::iterator(this, temp_node, i);
+   397              }
+   398              if(elem < temp_node.get()->elems[i]){
+   399                  break;
+   400              }
+   401          }
+   402          temp_node = temp_node.get()->children[i];
+   403      }
+   404
+   405      return end();
+   406  }
+   407
+   408
+   409
+   410  template <typename T>
+   411  typename btree<T>::iterator btree<T>::begin() const {
+   412      if(root.get()->size() == 0){
+   413          return btree_iterator<T>(this, nullptr, 0);
+   414      }
+   415      auto temp_node = root;
+   416      auto pre_temp = root;
+   417      while(temp_node != nullptr){
+   418          pre_temp = temp_node;
+   419          temp_node = temp_node.get()->children[0];
+   420      }
+   421
+   422      return btree_iterator<T>(this, pre_temp, 0);
+   423  }
+   424
+   425  template <typename T>
+   426  typename btree<T>::iterator btree<T>::pre_end() const {
+   427      auto temp_node = root;
+   428      auto last_child_val = temp_node.get()->children[temp_node.get()->children.size()-1];
+   429      while(last_child_val != nullptr){
+   430          temp_node = last_child_val;
+   431          last_child_val = temp_node.get()->children[temp_node.get()->children.size()-1];
+   432      }
+   433      return btree_iterator<T>(this, temp_node, temp_node.get()->elems.size()-1 );
+   434  }
+   435
+   436  template <typename T>
+   437  typename btree<T>::reverse_iterator btree<T>::rbegin() const {
+   438      return btree<T>::reverse_iterator(end());
+   439  }
+   440
+   441  template <typename T>
+   442  typename btree<T>::reverse_iterator btree<T>::rend() const {
+   443      return btree<T>::reverse_iterator(begin());
+   444  }
+   445
+   446  template <typename T>
+   447  typename btree<T>::const_iterator btree<T>::cbegin() const {
+   448      return btree::const_iterator(begin().get_tree(), begin().get_node(), begin().get_index());
+   449  }
+   450
+   451  template <typename T>
+   452  typename btree<T>::const_iterator btree<T>::cend() const {
+   453      auto it = end();
+   454      return btree<T>::const_iterator(it.get_tree(), it.get_node(), it.get_index());
+   455  }
+   456
+   457  template <typename T>
+   458  typename btree<T>::const_reverse_iterator btree<T>::crbegin() const {
+   459      return btree<T>::const_reverse_iterator(cend());
+   460  }
+   461
+   462  template <typename T>
+   463  typename btree<T>::const_reverse_iterator btree<T>::crend() const {
+   464      return btree<T>::const_reverse_iterator(cbegin());
+   465  }
+   466
+   467  template <typename T>
+   468  typename btree<T>::const_iterator btree<T>::find(const T &elem) const {
+   469      auto temp_node = root;
+   470      size_t i;
+   471      while(temp_node != nullptr){
+   472          for(i = 0; i < temp_node.get()->elems.size(); ++i){
+   473              if(temp_node.get()->elems[i] == elem){
+   474                  return btree<T>::const_iterator(this, temp_node, i);
+   475              }
+   476              if(elem < temp_node.get()->elems[i]){
+   477                  break;
+   478              }
+   479          }
+   480          temp_node = temp_node.get()->children[i];
+   481      }
+   482
+   483      return cend();
+   484  }
+   485
+   486
+   487  #endif
+
+dos2unix: converting file btree_iterator.h to Unix format ...
+
+===============================================================================
+-rw------- 1 cs6771 cs6771 5732 Oct 19 21:54 btree_iterator.h
+===============================================================================
+
+     1  #ifndef BTREE_ITERATOR_H
+     2  #define BTREE_ITERATOR_H
+     3
+     4  #include <iterator>
+     5  #include <memory>
+     6  #include "btree.h"
+     7
+     8  /**
+     9   * You MUST implement the btree iterators as (an) external class(es) in this file.
+    10   * Failure to do so will result in a total mark of 0 for this deliverable.
+    11   **/
+    12
+    13  // iterator related interface stuff here; would be nice if you called your
+    14  // iterator class btree_iterator (and possibly const_btree_iterator)
+    15
+    16  template<typename T> class btree;
+    17
+    18  template <typename T>
+    19  struct Identity{
+    20      using type = T;
+                   ^
++ ========================================================================================================== +
++ this is a really interesting approach but it over complicates the problem when you use iterator with const +
++ iterator (e.g comparing them), nevertheless, it's a nice solution                                          +
++ ========================================================================================================== +
+    21  };
+    22  template<typename T, template <typename U> class Constness> class btree_iterator;
+    23
+    24  template <typename T, template <typename> class C>
+    25  bool operator==(const btree_iterator<T, C>& lhs, const btree_iterator<T, C>& rhs);
+    26
+    27  template<typename Base, template <typename U> class Constness = Identity>
+    28  class btree_iterator{
+    29      using T = typename Constness<Base>::type;
+    30  public:
+    31
+    32      typedef std::ptrdiff_t difference_type;
+    33      typedef std::bidirectional_iterator_tag     iterator_category;
+    34      typedef T value_type;
+    35      typedef T* pointer;
+    36      typedef T& reference;
+    37
+    38  //    friend btree<Base>;
+    39
+    40      btree_iterator() = default;
+    41      btree_iterator(const btree<Base>* tree_ , std::shared_ptr<typename btree<Base>::Node> n, size_t i): node{n}, index{i}, tree{tree_}{}
+    42
+    43      reference operator*() const {
+    44          return node.lock().get()->elems[index];
+    45      };
+    46
+    47      pointer operator->() const { return &(operator*());}
+    48
+    49      btree_iterator& operator++();
+    50      btree_iterator& operator--();
+    51      btree_iterator operator++(int);
+    52      btree_iterator operator--(int);
+    53
+    54
+    55      const btree<Base>* get_tree() const { return tree;}
+    56      const size_t& get_index() const { return index;}
+    57      const std::shared_ptr<typename btree<Base>::Node>& get_node() const { return node.lock();}
+    58
+    59      std::weak_ptr<typename btree<Base>::Node> node;
+    60      size_t index{};
+    61      const btree<Base>* tree;
+    62
+    63  private:
+    64      bool right_down();
+    65      bool up_right();
+    66      bool down_left();
+    67      bool up_left();
+    68
+    69      friend bool operator==<>(const btree_iterator<Base, Constness>&, const btree_iterator<Base, Constness>&);
+    70  };
+    71
+    72  template <typename T, template <typename> class C>
+    73  bool operator==(const btree_iterator<T, C>& lhs, const btree_iterator<T, C>& rhs){
+    74      return lhs.tree == rhs.tree && lhs.node.lock() == rhs.node.lock() && rhs.index == lhs.index;
+    75  }
+    76
+    77  template <typename T, template <typename> class C>
+    78  bool operator!=(const btree_iterator<T, C>& lhs, const btree_iterator<T, C>& rhs){
+    79      return !(rhs == lhs);
+    80  }
+    81
+    82  template <typename T, template <typename> class C>
+    83  btree_iterator<T, C> &btree_iterator<T, C>::operator++() {
+    84
+    85      if(node.lock().get()->parent.node.lock() == nullptr && index >= node.lock().get()->size() ){
+    86          return *this;
+    87      }
+    88
+    89      bool res = right_down();
+    90      // go to left-down most child
+    91      if(res){
+    92          while(down_left());
+    93          return *this;
+    94      }
+    95      // check if it's last node
+    96      if(index != node.lock().get()->size() - 1){
+    97          ++index;
+    98          return *this;
+    99      }
+   100
+   101      res = up_right();
+   102      while(!res){
+   103          res = up_right();
+   104          if (node.lock().get()->parent.node.lock() == nullptr){
+   105              node = std::weak_ptr<typename btree<T>::Node>();
+   106              index = 0;
+   107              return *this;
+   108          }
+   109      }
+   110      return *this;
+   111  }
+   112
+   113  //template <typename T, template <typename> class C>
+   114  //bool btree_iterator<T,C>::operator!=(const btree_iterator<T, C>& rhs) {
+   115  //    return node != rhs.node || index != rhs.index;
+   116  //
+   117  //}
+   118
+   119  template <typename T, template <typename> class C>
+   120  bool btree_iterator<T, C>::right_down() {
+   121      if(node.lock().get()->children[index+1] == nullptr){
+   122          return false;
+   123      }
+   124      node = node.lock().get()->children[index+1];
+   125      index = 0;
+   126      return true;
+   127  }
+   128
+   129  template <typename T, template <typename> class C>
+   130  bool btree_iterator<T, C>::up_right() {
+   131      if(node.lock().get()->parent.node.lock() == nullptr){
+   132          return false;
+   133      }
+   134
+   135      index = node.lock().get()->parent.index;
+   136      node = node.lock().get()->parent.node;
+   137
+   138      return node.lock().get()->size() > index;
+   139  }
+   140
+   141  template <typename T, template <typename> class C>
+   142  bool btree_iterator<T, C>::down_left() {
+   143      if(node.lock().get()->children[index] == nullptr){
+   144          return false;
+   145      }
+   146      node = node.lock().get()->children[index];
+   147      index = 0;
+   148      return true;
+   149  }
+   150
+   151  template <typename T, template <typename> class C>
+   152  btree_iterator<T, C> &btree_iterator<T, C>::operator--() {
+   153      if(node.lock() == nullptr){
+   154          const auto& i = tree->pre_end();
+   155          node = i.node;
+   156          index = i.index;
+   157          return *this;
+   158      }
+   159
+   160      bool res = down_left();
+   161      if(res){
+   162          index = node.lock().get()->size() - 1;
+   163          while(res){
+   164              res = right_down();
+   165              if(res){
+   166                  index = node.lock().get()->size() - 1 ;
+   167              }
+   168          }
+   169          return *this;
+   170      }
+   171      if(index != 0){
+   172          --index;
+   173          return *this;
+   174      }
+   175
+   176      while(!up_left()){
+   177          if( node.lock().get()->parent.node.lock() == nullptr)
+   178              break;
+   179      }
+   180      return *this;
+   181  }
+   182
+   183  template <typename T, template <typename> class C>
+   184  bool btree_iterator<T, C>::up_left() {
+   185      // have got root
+   186      if(node.lock().get()->parent.node.lock() == nullptr){
+   187          return false;
+   188      }
+   189
+   190      index = node.lock().get()->parent.index;
+   191      node = node.lock().get()->parent.node;
+   192      if(index != 0){
+   193          --index;
+   194          return true;
+   195      }
+   196      return false;
+   197  }
+   198
+   199  template <typename T, template <typename> class C>
+   200  btree_iterator<T, C> btree_iterator<T, C>::operator++(int) {
+   201      btree_iterator ret = *this;
+   202      operator++();
+   203      return ret;
+   204  }
+   205
+   206  template <typename T, template <typename> class C>
+   207  btree_iterator<T, C> btree_iterator<T, C>::operator--(int) {
+   208      btree_iterator ret = *this;
+   209      operator--();
+   210      return ret;
+   211  }
+   212
+   213
+   214  #endif
+
+fetch: cannot find lorem.txt in directory /home/cs6771/17s2.work/ass4/tests
+!!section tests
+** Test 1: empty btree, single insert
+--------------------------------
+** Test passed
+--------------------------------
+** Test 2: find in btree
+--------------------------------
+** Test failed (run-time error/compile error). Output difference:-
+test02.cpp: In instantiation of 'void find_in_tree(const btree<Base>&, T) [with T = std::basic_string<char>]':
+test02.cpp:35:38:   required from here
+test02.cpp:12:33: error: conversion from 'btree_iterator<std::basic_string<char>, Identity>' to non-scalar type 'btree<std::basic_string<char> >::const_iterator {aka btree_iterator<std::basic_string<char>, std::add_const>}' requested
+     find(b.begin(), b.end(), val);
+                                 ^
+test02.cpp:13:12: error: no match for 'operator==' (operand types are 'btree<std::basic_string<char> >::const_iterator {aka btree_iterator<std::basic_string<char>, std::add_const>}' and 'btree<std::basic_string<char> >::iterator {aka btree_iterator<std::basic_string<char>, Identity>}')
+   if (iter == b.end())
+            ^
+test02.cpp:13:12: note: candidates are:
+In file included from /usr/include/c++/4.9/iosfwd:40:0,
+                 from /usr/include/c++/4.9/ios:38,
+                 from /usr/include/c++/4.9/ostream:38,
+                 from /usr/include/c++/4.9/iostream:39,
+                 from test02.cpp:1:
+/usr/include/c++/4.9/bits/postypes.h:216:5: note: template<class _StateT> bool std::operator==(const std::fpos<_StateT>&, const std::fpos<_StateT>&)
+     operator==(const fpos<_StateT>& __lhs, const fpos<_StateT>& __rhs)
+     ^
+/usr/include/c++/4.9/bits/postypes.h:216:5: note:   template argument deduction/substitution failed:
+test02.cpp:13:12: note:   'btree<std::basic_string<char> >::const_iterator {aka btree_iterator<std::basic_string<char>, std::add_const>}' is not derived from 'const std::fpos<_StateT>'
+   if (iter == b.end())
+** 810 lines skipped **
+            ^
+In file included from /usr/include/c++/4.9/queue:64:0,
+                 from btree.h:16,
+                 from test02.cpp:5:
+/usr/include/c++/4.9/bits/stl_queue.h:271:5: note: template<class _Tp, class _Seq> bool std::operator==(const std::queue<_Tp, _Seq>&, const std::queue<_Tp, _Seq>&)
+     operator==(const queue<_Tp, _Seq>& __x, const queue<_Tp, _Seq>& __y)
+     ^
+/usr/include/c++/4.9/bits/stl_queue.h:271:5: note:   template argument deduction/substitution failed:
+test02.cpp:13:12: note:   'btree<int>::const_iterator {aka btree_iterator<int, std::add_const>}' is not derived from 'const std::queue<_Tp, _Seq>'
+   if (iter == b.end())
+            ^
+In file included from btree.h:21:0,
+                 from test02.cpp:5:
+btree_iterator.h:73:6: note: template<class T, template<class> class C> bool operator==(const btree_iterator<T, C>&, const btree_iterator<T, C>&)
+ bool operator==(const btree_iterator<T, C>& lhs, const btree_iterator<T, C>& rhs){
+      ^
+btree_iterator.h:73:6: note:   template argument deduction/substitution failed:
+test02.cpp:13:12: note:   deduced conflicting types for parameter 'C' ('template<class _Tp> struct std::add_const' and 'template<class T> struct Identity')
+   if (iter == b.end())
+            ^
+--------------------------------
+** Test 3: custom class
+--------------------------------
+** Test failed (difference in output). Output difference:-
+5a6,15
+> 2
+> 4
+> 12
+> 14
+> 50
+> 150
+> 200
+> 212
+> 1200
+> 11200
+--------------------------------
+** Test 4: multiple inserts
+--------------------------------
+** Test passed
+--------------------------------
+** Test 5: const iterator find
+--------------------------------
+** Test failed (run-time error/compile error). Output difference:-
+test05.cpp: In function 'int main()':
+test05.cpp:26:46: error: conversion from 'btree<int>::iterator {aka btree_iterator<int, Identity>}' to non-scalar type 'btree<int>::const_iterator {aka btree_iterator<int, std::add_const>}' requested
+     btree<int>::const_iterator iend = b1.end();
+                                              ^
+test05.cpp:35:46: error: conversion from 'btree<int>::iterator {aka btree_iterator<int, Identity>}' to non-scalar type 'btree<int>::const_iterator {aka btree_iterator<int, std::add_const>}' requested
+     btree<int>::const_iterator iend = b1.end();
+                                              ^
+In file included from btree.h:21:0,
+                 from test05.cpp:4:
+btree_iterator.h: In instantiation of 'const std::shared_ptr<typename btree<Base>::Node>& btree_iterator<T, Constness>::get_node() const [with Base = int; Constness = Identity; typename btree<Base>::Node = btree<int>::Node]':
+btree.h:454:81:   required from 'btree<T>::const_iterator btree<T>::cend() const [with T = int; btree<T>::const_iterator = btree_iterator<int, std::add_const>]'
+btree.h:483:17:   required from 'btree<T>::const_iterator btree<T>::find(const T&) const [with T = int; btree<T>::const_iterator = btree_iterator<int, std::add_const>]'
+test05.cpp:25:48:   required from here
+btree_iterator.h:57:92: error: returning reference to temporary [-Werror=return-local-addr]
+     const std::shared_ptr<typename btree<Base>::Node>& get_node() const { return node.lock();}
+                                                                                            ^
+cc1plus: all warnings being treated as errors
+--------------------------------
+** Test 6: forward/reverse traversal comparison
+--------------------------------
+** Test failed (difference in output). Output difference:-
+5c5
+< Test failed!
+---
+> Test passed!
+--------------------------------
+** Test 7: const forward/reverse traversal comparison
+--------------------------------
+** Test failed (run-time error/compile error). Output difference:-
+0a1,5
+> Inserting random numbers...
+> Now traverse forward...
+> Now traverse in reverse...
+> Compare traversals...
+> Test passed!
+test07.cpp: In function 'int main(int, char**)':
+test07.cpp:35:51: error: conversion from 'btree<long int>::iterator {aka btree_iterator<long int, Identity>}' to non-scalar type 'btree<long int>::const_iterator {aka btree_iterator<long int, std::add_const>}' requested
+   for(btree<long>::const_iterator iter = bl.begin(); iter != bl.end(); iter++)
+                                                   ^
+test07.cpp:35:59: error: no match for 'operator!=' (operand types are 'btree<long int>::const_iterator {aka btree_iterator<long int, std::add_const>}' and 'btree<long int>::iterator {aka btree_iterator<long int, Identity>}')
+   for(btree<long>::const_iterator iter = bl.begin(); iter != bl.end(); iter++)
+                                                           ^
+test07.cpp:35:59: note: candidates are:
+In file included from btree.h:21:0,
+                 from test07.cpp:1:
+btree_iterator.h:78:6: note: template<class T, template<class> class C> bool operator!=(const btree_iterator<T, C>&, const btree_iterator<T, C>&)
+ bool operator!=(const btree_iterator<T, C>& lhs, const btree_iterator<T, C>& rhs){
+      ^
+btree_iterator.h:78:6: note:   template argument deduction/substitution failed:
+test07.cpp:35:69: note:   deduced conflicting types for parameter 'C' ('template<class _Tp> struct std::add_const' and 'template<class T> struct Identity')
+   for(btree<long>::const_iterator iter = bl.begin(); iter != bl.end(); iter++)
+                                                                     ^
+In file included from /usr/include/c++/4.9/set:62:0,
+                 from test07.cpp:3:
+/usr/include/c++/4.9/bits/stl_multiset.h:801:5: note: template<class _Key, class _Compare, class _Alloc> bool std::operator!=(const std::multiset<_Key, _Compare, _Alloc>&, const std::multiset<_Key, _Compare, _Alloc>&)
+** 1092 lines skipped **
+/usr/include/c++/4.9/bits/stl_iterator.h:344:25: note:   'std::reverse_iterator<btree_iterator<long int, std::add_const> >::iterator_type {aka btree_iterator<long int, std::add_const>}' is not derived from 'const std::fpos<_StateT>'
+     { return __x.base() == __y.base(); }
+                         ^
+In file included from btree.h:21:0,
+                 from test07.cpp:1:
+btree_iterator.h:73:6: note: template<class T, template<class> class C> bool operator==(const btree_iterator<T, C>&, const btree_iterator<T, C>&)
+ bool operator==(const btree_iterator<T, C>& lhs, const btree_iterator<T, C>& rhs){
+      ^
+btree_iterator.h:73:6: note:   template argument deduction/substitution failed:
+In file included from /usr/include/c++/4.9/bits/stl_algobase.h:67:0,
+                 from /usr/include/c++/4.9/bits/char_traits.h:39,
+                 from /usr/include/c++/4.9/ios:40,
+                 from /usr/include/c++/4.9/ostream:38,
+                 from /usr/include/c++/4.9/iostream:39,
+                 from btree.h:14,
+                 from test07.cpp:1:
+/usr/include/c++/4.9/bits/stl_iterator.h:344:25: note:   deduced conflicting types for parameter 'C' ('template<class _Tp> struct std::add_const' and 'template<class T> struct Identity')
+     { return __x.base() == __y.base(); }
+                         ^
+/home/cs6771/17s2.work/ass4/execute: line 40: test07: command not found
+--------------------------------
+** Test 8: custom class find
+--------------------------------
+** Test passed
+--------------------------------
+** Test 9: custom class const reference
+--------------------------------
+** Test failed (run-time error/compile error). Output difference:-
+test09.cpp: In function 'int main()':
+test09.cpp:59:44: error: conversion from 'btree<X>::iterator {aka btree_iterator<X, Identity>}' to non-scalar type 'btree<X>::const_iterator {aka btree_iterator<X, std::add_const>}' requested
+     btree<X>::const_iterator iend = b1.end();
+                                            ^
+test09.cpp:68:44: error: conversion from 'btree<X>::iterator {aka btree_iterator<X, Identity>}' to non-scalar type 'btree<X>::const_iterator {aka btree_iterator<X, std::add_const>}' requested
+     btree<X>::const_iterator iend = b1.end();
+                                            ^
+In file included from btree.h:21:0,
+                 from test09.cpp:4:
+btree_iterator.h: In instantiation of 'const std::shared_ptr<typename btree<Base>::Node>& btree_iterator<T, Constness>::get_node() const [with Base = X; Constness = Identity; typename btree<Base>::Node = btree<X>::Node]':
+btree.h:454:81:   required from 'btree<T>::const_iterator btree<T>::cend() const [with T = X; btree<T>::const_iterator = btree_iterator<X, std::add_const>]'
+btree.h:483:17:   required from 'btree<T>::const_iterator btree<T>::find(const T&) const [with T = X; btree<T>::const_iterator = btree_iterator<X, std::add_const>]'
+test09.cpp:58:49:   required from here
+btree_iterator.h:57:92: error: returning reference to temporary [-Werror=return-local-addr]
+     const std::shared_ptr<typename btree<Base>::Node>& get_node() const { return node.lock();}
+                                                                                            ^
+cc1plus: all warnings being treated as errors
+--------------------------------
+** Test 10: random (fixed seed) character insertion
+--------------------------------
+** Test failed (run-time error/compile error). Output difference:-
+test10.cpp: In function 'int main(int, char**)':
+test10.cpp:40:13: error: no match for 'operator=' (operand types are 'btree<char>::const_iterator {aka btree_iterator<char, std::add_const>}' and 'btree<char>::iterator {aka btree_iterator<char, Identity>}')
+   for(citer = refstring.begin(); citer != refstring.end(); ++citer)
+             ^
+test10.cpp:40:13: note: candidates are:
+In file included from btree.h:21:0,
+                 from test10.cpp:1:
+btree_iterator.h:28:7: note: btree_iterator<char, std::add_const>& btree_iterator<char, std::add_const>::operator=(const btree_iterator<char, std::add_const>&)
+ class btree_iterator{
+       ^
+btree_iterator.h:28:7: note:   no known conversion for argument 1 from 'btree<char>::iterator {aka btree_iterator<char, Identity>}' to 'const btree_iterator<char, std::add_const>&'
+btree_iterator.h:28:7: note: btree_iterator<char, std::add_const>& btree_iterator<char, std::add_const>::operator=(btree_iterator<char, std::add_const>&&)
+btree_iterator.h:28:7: note:   no known conversion for argument 1 from 'btree<char>::iterator {aka btree_iterator<char, Identity>}' to 'btree_iterator<char, std::add_const>&&'
+test10.cpp:40:40: error: no match for 'operator!=' (operand types are 'btree<char>::const_iterator {aka btree_iterator<char, std::add_const>}' and 'btree<char>::iterator {aka btree_iterator<char, Identity>}')
+   for(citer = refstring.begin(); citer != refstring.end(); ++citer)
+                                        ^
+test10.cpp:40:40: note: candidates are:
+In file included from btree.h:21:0,
+                 from test10.cpp:1:
+btree_iterator.h:78:6: note: template<class T, template<class> class C> bool operator!=(const btree_iterator<T, C>&, const btree_iterator<T, C>&)
+** 420 lines skipped **
+                 from /usr/include/c++/4.9/ios:42,
+                 from /usr/include/c++/4.9/ostream:38,
+                 from /usr/include/c++/4.9/iostream:39,
+                 from btree.h:14,
+                 from test10.cpp:1:
+/usr/include/c++/4.9/ext/new_allocator.h: In instantiation of 'struct __gnu_cxx::new_allocator<const char>':
+/usr/include/c++/4.9/bits/allocator.h:92:11:   required from 'class std::allocator<const char>'
+/usr/include/c++/4.9/bits/alloc_traits.h:85:43:   required from 'struct std::allocator_traits<std::allocator<const char> >'
+/usr/include/c++/4.9/ext/alloc_traits.h:95:10:   required from 'struct __gnu_cxx::__alloc_traits<std::allocator<const char> >'
+/usr/include/c++/4.9/bits/stl_vector.h:75:28:   required from 'struct std::_Vector_base<const char, std::allocator<const char> >'
+/usr/include/c++/4.9/bits/stl_vector.h:214:11:   required from 'class std::vector<const char, std::allocator<const char> >'
+btree.h:247:20:   required from 'struct btree<const char>::Node'
+btree_iterator.h:105:18:   required from 'btree_iterator<T, C>& btree_iterator<T, Constness>::operator++() [with Base = char; Constness = std::add_const]'
+test10.cpp:40:62:   required from here
+/usr/include/c++/4.9/ext/new_allocator.h:93:7: error: 'const _Tp* __gnu_cxx::new_allocator<_Tp>::address(__gnu_cxx::new_allocator<_Tp>::const_reference) const [with _Tp = const char; __gnu_cxx::new_allocator<_Tp>::const_pointer = const char*; __gnu_cxx::new_allocator<_Tp>::const_reference = const char&]' cannot be overloaded
+       address(const_reference __x) const _GLIBCXX_NOEXCEPT
+       ^
+/usr/include/c++/4.9/ext/new_allocator.h:89:7: error: with '_Tp* __gnu_cxx::new_allocator<_Tp>::address(__gnu_cxx::new_allocator<_Tp>::reference) const [with _Tp = const char; __gnu_cxx::new_allocator<_Tp>::pointer = const char*; __gnu_cxx::new_allocator<_Tp>::reference = const char&]'
+       address(reference __x) const _GLIBCXX_NOEXCEPT
+       ^
+--------------------------------
+** Test 11: output operator big tree
+--------------------------------
+** Test passed
+--------------------------------
+** Test 12: string btree
+--------------------------------
+** Test failed (difference in output). Output difference:-
+1a2,12
+> The first 10 strings in order...
+>
+> "Lorem
+> Duis
+> Excepteur
+> Ut
+> ad
+> adipisicing
+> aliqua.
+> aliquip
+> amet,
+--------------------------------
+** Test 13: repeated insertion of one value
+--------------------------------
+** Test passed
+--------------------------------
+** Test 14: empty tree traversal
+--------------------------------
+** Test failed (run-time error/compile error). Output difference:-
+0a1
+> Done!
+test14.cpp: In function 'int main()':
+test14.cpp:11:49: error: conversion from 'btree<int>::iterator {aka btree_iterator<int, Identity>}' to non-scalar type 'btree<int>::const_iterator {aka btree_iterator<int, std::add_const>}' requested
+   for(btree<int>::const_iterator iter = b.begin(); iter != b.end(); ++iter)
+                                                 ^
+test14.cpp:11:57: error: no match for 'operator!=' (operand types are 'btree<int>::const_iterator {aka btree_iterator<int, std::add_const>}' and 'btree<int>::iterator {aka btree_iterator<int, Identity>}')
+   for(btree<int>::const_iterator iter = b.begin(); iter != b.end(); ++iter)
+                                                         ^
+test14.cpp:11:57: note: candidates are:
+In file included from btree.h:21:0,
+                 from test14.cpp:4:
+btree_iterator.h:78:6: note: template<class T, template<class> class C> bool operator!=(const btree_iterator<T, C>&, const btree_iterator<T, C>&)
+ bool operator!=(const btree_iterator<T, C>& lhs, const btree_iterator<T, C>& rhs){
+      ^
+btree_iterator.h:78:6: note:   template argument deduction/substitution failed:
+test14.cpp:11:66: note:   deduced conflicting types for parameter 'C' ('template<class _Tp> struct std::add_const' and 'template<class T> struct Identity')
+   for(btree<int>::const_iterator iter = b.begin(); iter != b.end(); ++iter)
+                                                                  ^
+In file included from /usr/include/c++/4.9/queue:64:0,
+                 from btree.h:16,
+                 from test14.cpp:4:
+** 361 lines skipped **
+                 from /usr/include/c++/4.9/ios:42,
+                 from /usr/include/c++/4.9/ostream:38,
+                 from /usr/include/c++/4.9/iostream:39,
+                 from test14.cpp:1:
+/usr/include/c++/4.9/ext/new_allocator.h: In instantiation of 'struct __gnu_cxx::new_allocator<const int>':
+/usr/include/c++/4.9/bits/allocator.h:92:11:   required from 'class std::allocator<const int>'
+/usr/include/c++/4.9/bits/alloc_traits.h:85:43:   required from 'struct std::allocator_traits<std::allocator<const int> >'
+/usr/include/c++/4.9/ext/alloc_traits.h:95:10:   required from 'struct __gnu_cxx::__alloc_traits<std::allocator<const int> >'
+/usr/include/c++/4.9/bits/stl_vector.h:75:28:   required from 'struct std::_Vector_base<const int, std::allocator<const int> >'
+/usr/include/c++/4.9/bits/stl_vector.h:214:11:   required from 'class std::vector<const int, std::allocator<const int> >'
+btree.h:247:20:   required from 'struct btree<const int>::Node'
+btree_iterator.h:105:18:   required from 'btree_iterator<T, C>& btree_iterator<T, Constness>::operator++() [with Base = int; Constness = std::add_const]'
+test14.cpp:11:71:   required from here
+/usr/include/c++/4.9/ext/new_allocator.h:93:7: error: 'const _Tp* __gnu_cxx::new_allocator<_Tp>::address(__gnu_cxx::new_allocator<_Tp>::const_reference) const [with _Tp = const int; __gnu_cxx::new_allocator<_Tp>::const_pointer = const int*; __gnu_cxx::new_allocator<_Tp>::const_reference = const int&]' cannot be overloaded
+       address(const_reference __x) const _GLIBCXX_NOEXCEPT
+       ^
+/usr/include/c++/4.9/ext/new_allocator.h:89:7: error: with '_Tp* __gnu_cxx::new_allocator<_Tp>::address(__gnu_cxx::new_allocator<_Tp>::reference) const [with _Tp = const int; __gnu_cxx::new_allocator<_Tp>::pointer = const int*; __gnu_cxx::new_allocator<_Tp>::reference = const int&]'
+       address(reference __x) const _GLIBCXX_NOEXCEPT
+       ^
+/home/cs6771/17s2.work/ass4/execute: line 7: 14564 Segmentation fault      (core dumped) test14
+--------------------------------
+** Test 15: copy control
+--------------------------------
+** Test failed (run-time error/compile error). Output difference:-
+test15.cpp: In function 'int main()':
+test15.cpp:20:48: error: conversion from 'btree<int>::iterator {aka btree_iterator<int, Identity>}' to non-scalar type 'btree<int>::const_iterator {aka btree_iterator<int, std::add_const>}' requested
+   for (btree<int>::const_iterator i = b2.begin(); i != b2.end(); ++i) {
+                                                ^
+test15.cpp:20:53: error: no match for 'operator!=' (operand types are 'btree<int>::const_iterator {aka btree_iterator<int, std::add_const>}' and 'btree<int>::iterator {aka btree_iterator<int, Identity>}')
+   for (btree<int>::const_iterator i = b2.begin(); i != b2.end(); ++i) {
+                                                     ^
+test15.cpp:20:53: note: candidates are:
+In file included from btree.h:21:0,
+                 from test15.cpp:2:
+btree_iterator.h:78:6: note: template<class T, template<class> class C> bool operator!=(const btree_iterator<T, C>&, const btree_iterator<T, C>&)
+ bool operator!=(const btree_iterator<T, C>& lhs, const btree_iterator<T, C>& rhs){
+      ^
+btree_iterator.h:78:6: note:   template argument deduction/substitution failed:
+test15.cpp:20:63: note:   deduced conflicting types for parameter 'C' ('template<class _Tp> struct std::add_const' and 'template<class T> struct Identity')
+   for (btree<int>::const_iterator i = b2.begin(); i != b2.end(); ++i) {
+                                                               ^
+In file included from /usr/include/c++/4.9/iterator:66:0,
+                 from btree_iterator.h:4,
+                 from btree.h:21,
+** 362 lines skipped **
+                 from /usr/include/c++/4.9/bits/ios_base.h:41,
+                 from /usr/include/c++/4.9/ios:42,
+                 from /usr/include/c++/4.9/ostream:38,
+                 from /usr/include/c++/4.9/iostream:39,
+                 from test15.cpp:1:
+/usr/include/c++/4.9/ext/new_allocator.h: In instantiation of 'struct __gnu_cxx::new_allocator<const int>':
+/usr/include/c++/4.9/bits/allocator.h:92:11:   required from 'class std::allocator<const int>'
+/usr/include/c++/4.9/bits/alloc_traits.h:85:43:   required from 'struct std::allocator_traits<std::allocator<const int> >'
+/usr/include/c++/4.9/ext/alloc_traits.h:95:10:   required from 'struct __gnu_cxx::__alloc_traits<std::allocator<const int> >'
+/usr/include/c++/4.9/bits/stl_vector.h:75:28:   required from 'struct std::_Vector_base<const int, std::allocator<const int> >'
+/usr/include/c++/4.9/bits/stl_vector.h:214:11:   required from 'class std::vector<const int, std::allocator<const int> >'
+btree.h:247:20:   required from 'struct btree<const int>::Node'
+btree_iterator.h:105:18:   required from 'btree_iterator<T, C>& btree_iterator<T, Constness>::operator++() [with Base = int; Constness = std::add_const]'
+test15.cpp:20:68:   required from here
+/usr/include/c++/4.9/ext/new_allocator.h:93:7: error: 'const _Tp* __gnu_cxx::new_allocator<_Tp>::address(__gnu_cxx::new_allocator<_Tp>::const_reference) const [with _Tp = const int; __gnu_cxx::new_allocator<_Tp>::const_pointer = const int*; __gnu_cxx::new_allocator<_Tp>::const_reference = const int&]' cannot be overloaded
+       address(const_reference __x) const _GLIBCXX_NOEXCEPT
+       ^
+/usr/include/c++/4.9/ext/new_allocator.h:89:7: error: with '_Tp* __gnu_cxx::new_allocator<_Tp>::address(__gnu_cxx::new_allocator<_Tp>::reference) const [with _Tp = const int; __gnu_cxx::new_allocator<_Tp>::pointer = const int*; __gnu_cxx::new_allocator<_Tp>::reference = const int&]'
+       address(reference __x) const _GLIBCXX_NOEXCEPT
+       ^
+--------------------------------
+** Test 16: 1mil int insert
+--------------------------------
+*** execution-time-info.txt:
+On wager [Your Solution: 6.86s; Reference Solution: <3s; Time Limit Set: 60s]
+** Test failed (run-time error/compile error). Output difference:-
+test16.cpp: In function 'int confirmEverythingMatches(const btree<int>&, const std::set<int>&)':
+test16.cpp:58:48: error: no match for 'operator==' (operand types are 'btree<int>::const_iterator {aka btree_iterator<int, std::add_const>}' and 'btree<int>::iterator {aka btree_iterator<int, Identity>}')
+     bool foundInTree = !(testContainer.find(j) == testContainer.end());
+                                                ^
+test16.cpp:58:48: note: candidates are:
+In file included from /usr/include/c++/4.9/iosfwd:40:0,
+                 from /usr/include/c++/4.9/ios:38,
+                 from /usr/include/c++/4.9/ostream:38,
+                 from /usr/include/c++/4.9/iostream:39,
+                 from btree.h:14,
+                 from test16.cpp:1:
+/usr/include/c++/4.9/bits/postypes.h:216:5: note: template<class _StateT> bool std::operator==(const std::fpos<_StateT>&, const std::fpos<_StateT>&)
+     operator==(const fpos<_StateT>& __lhs, const fpos<_StateT>& __rhs)
+     ^
+/usr/include/c++/4.9/bits/postypes.h:216:5: note:   template argument deduction/substitution failed:
+test16.cpp:58:69: note:   'btree<int>::const_iterator {aka btree_iterator<int, std::add_const>}' is not derived from 'const std::fpos<_StateT>'
+     bool foundInTree = !(testContainer.find(j) == testContainer.end());
+                                                                     ^
+In file included from /usr/include/c++/4.9/bits/stl_algobase.h:64:0,
+                 from /usr/include/c++/4.9/bits/char_traits.h:39,
+** 408 lines skipped **
+                                                                     ^
+In file included from btree.h:21:0,
+                 from test16.cpp:1:
+btree_iterator.h:73:6: note: template<class T, template<class> class C> bool operator==(const btree_iterator<T, C>&, const btree_iterator<T, C>&)
+ bool operator==(const btree_iterator<T, C>& lhs, const btree_iterator<T, C>& rhs){
+      ^
+btree_iterator.h:73:6: note:   template argument deduction/substitution failed:
+test16.cpp:58:69: note:   deduced conflicting types for parameter 'C' ('template<class _Tp> struct std::add_const' and 'template<class T> struct Identity')
+     bool foundInTree = !(testContainer.find(j) == testContainer.end());
+                                                                     ^
+In file included from btree.h:21:0,
+                 from test16.cpp:1:
+btree_iterator.h: In instantiation of 'const std::shared_ptr<typename btree<Base>::Node>& btree_iterator<T, Constness>::get_node() const [with Base = int; Constness = Identity; typename btree<Base>::Node = btree<int>::Node]':
+btree.h:454:81:   required from 'btree<T>::const_iterator btree<T>::cend() const [with T = int; btree<T>::const_iterator = btree_iterator<int, std::add_const>]'
+btree.h:483:17:   required from 'btree<T>::const_iterator btree<T>::find(const T&) const [with T = int; btree<T>::const_iterator = btree_iterator<int, std::add_const>]'
+test16.cpp:58:46:   required from here
+btree_iterator.h:57:92: error: returning reference to temporary [-Werror=return-local-addr]
+     const std::shared_ptr<typename btree<Base>::Node>& get_node() const { return node.lock();}
+                                                                                            ^
+cc1plus: all warnings being treated as errors
+--------------------------------
+** Test 17: node size 1, BST
+--------------------------------
+** Test failed (difference in output). Output difference:-
+4c4
+< BCFIJKM
+---
+> BCFIJKMXYZ[\^_`cj
+--------------------------------
+** Test 18: non-const iterator
+--------------------------------
+** Test failed (difference in output). Output difference:-
+1c1
+< 12 22 32 42
+---
+> 12 22 32 42 52 62 72 82 102 112 122
+--------------------------------
+** Test 19: reverse iterator
+--------------------------------
+** Test failed (run-time error/compile error). Output difference:-
+In file included from /usr/include/c++/4.9/bits/stl_algobase.h:67:0,
+                 from /usr/include/c++/4.9/bits/char_traits.h:39,
+                 from /usr/include/c++/4.9/ios:40,
+                 from /usr/include/c++/4.9/ostream:38,
+                 from /usr/include/c++/4.9/iostream:39,
+                 from btree.h:14,
+                 from test19.cpp:1:
+/usr/include/c++/4.9/bits/stl_iterator.h: In instantiation of 'std::reverse_iterator<_Iterator>::reverse_iterator(const std::reverse_iterator<_Iter>&) [with _Iter = btree_iterator<char, Identity>; _Iterator = btree_iterator<char, std::add_const>]':
+test19.cpp:28:65:   required from here
+/usr/include/c++/4.9/bits/stl_iterator.h:141:22: error: no matching function for call to 'btree_iterator<char, std::add_const>::btree_iterator(std::reverse_iterator<btree_iterator<char, Identity> >::iterator_type)'
+  : current(__x.base()) { }
+                      ^
+/usr/include/c++/4.9/bits/stl_iterator.h:141:22: note: candidates are:
+In file included from btree.h:21:0,
+                 from test19.cpp:1:
+btree_iterator.h:41:5: note: btree_iterator<T, Constness>::btree_iterator(const btree<Base>*, std::shared_ptr<typename btree<Base>::Node>, size_t) [with Base = char; Constness = std::add_const; typename btree<Base>::Node = btree<char>::Node; size_t = unsigned int]
+     btree_iterator(const btree<Base>* tree_ , std::shared_ptr<typename btree<Base>::Node> n, size_t i): node{n}, index{i}, tree{tree_}{}
+     ^
+btree_iterator.h:41:5: note:   candidate expects 3 arguments, 1 provided
+btree_iterator.h:40:5: note: btree_iterator<T, Constness>::btree_iterator() [with Base = char; Constness = std::add_const]
+** 575 lines skipped **
+                 from test19.cpp:1:
+/usr/include/c++/4.9/bits/stl_iterator.h:344:25: note:   'std::reverse_iterator<btree_iterator<char, std::add_const> >::iterator_type {aka btree_iterator<char, std::add_const>}' is not derived from 'const std::fpos<_StateT>'
+     { return __x.base() == __y.base(); }
+                         ^
+In file included from btree.h:21:0,
+                 from test19.cpp:1:
+btree_iterator.h:73:6: note: template<class T, template<class> class C> bool operator==(const btree_iterator<T, C>&, const btree_iterator<T, C>&)
+ bool operator==(const btree_iterator<T, C>& lhs, const btree_iterator<T, C>& rhs){
+      ^
+btree_iterator.h:73:6: note:   template argument deduction/substitution failed:
+In file included from /usr/include/c++/4.9/bits/stl_algobase.h:67:0,
+                 from /usr/include/c++/4.9/bits/char_traits.h:39,
+                 from /usr/include/c++/4.9/ios:40,
+                 from /usr/include/c++/4.9/ostream:38,
+                 from /usr/include/c++/4.9/iostream:39,
+                 from btree.h:14,
+                 from test19.cpp:1:
+/usr/include/c++/4.9/bits/stl_iterator.h:344:25: note:   deduced conflicting types for parameter 'C' ('template<class _Tp> struct std::add_const' and 'template<class T> struct Identity')
+     { return __x.base() == __y.base(); }
+                         ^
+--------------------------------
+** Test 20: output operator
+--------------------------------
+** Test passed
+--------------------------------
+** Test 21: iterator ==/!= const_iterator
+--------------------------------
+** Test failed (run-time error/compile error). Output difference:-
+0a1,2
+> 1
+> 0
+test21.cpp: In function 'void foo(btree<int>&, const btree<int>&)':
+test21.cpp:11:17: error: no match for 'operator==' (operand types are 'btree<int>::iterator {aka btree_iterator<int, Identity>}' and 'btree<int>::const_iterator {aka btree_iterator<int, std::add_const>}')
+   cout << (iter == c_iter) << endl;
+                 ^
+test21.cpp:11:17: note: candidates are:
+In file included from /usr/include/c++/4.9/iosfwd:40:0,
+                 from /usr/include/c++/4.9/ios:38,
+                 from /usr/include/c++/4.9/ostream:38,
+                 from /usr/include/c++/4.9/iostream:39,
+                 from test21.cpp:1:
+/usr/include/c++/4.9/bits/postypes.h:216:5: note: template<class _StateT> bool std::operator==(const std::fpos<_StateT>&, const std::fpos<_StateT>&)
+     operator==(const fpos<_StateT>& __lhs, const fpos<_StateT>& __rhs)
+     ^
+/usr/include/c++/4.9/bits/postypes.h:216:5: note:   template argument deduction/substitution failed:
+test21.cpp:11:20: note:   'btree<int>::iterator {aka btree_iterator<int, Identity>}' is not derived from 'const std::fpos<_StateT>'
+   cout << (iter == c_iter) << endl;
+                    ^
+In file included from /usr/include/c++/4.9/bits/stl_algobase.h:64:0,
+                 from /usr/include/c++/4.9/bits/char_traits.h:39,
+                 from /usr/include/c++/4.9/ios:40,
+** 720 lines skipped **
+/usr/include/c++/4.9/bits/stl_pair.h:227:5: note: template<class _T1, class _T2> constexpr bool std::operator!=(const std::pair<_T1, _T2>&, const std::pair<_T1, _T2>&)
+     operator!=(const pair<_T1, _T2>& __x, const pair<_T1, _T2>& __y)
+     ^
+/usr/include/c++/4.9/bits/stl_pair.h:227:5: note:   template argument deduction/substitution failed:
+test21.cpp:12:20: note:   'btree<int>::iterator {aka btree_iterator<int, Identity>}' is not derived from 'const std::pair<_T1, _T2>'
+   cout << (iter != c_iter) << endl;
+                    ^
+In file included from /usr/include/c++/4.9/iosfwd:40:0,
+                 from /usr/include/c++/4.9/ios:38,
+                 from /usr/include/c++/4.9/ostream:38,
+                 from /usr/include/c++/4.9/iostream:39,
+                 from test21.cpp:1:
+/usr/include/c++/4.9/bits/postypes.h:221:5: note: template<class _StateT> bool std::operator!=(const std::fpos<_StateT>&, const std::fpos<_StateT>&)
+     operator!=(const fpos<_StateT>& __lhs, const fpos<_StateT>& __rhs)
+     ^
+/usr/include/c++/4.9/bits/postypes.h:221:5: note:   template argument deduction/substitution failed:
+test21.cpp:12:20: note:   'btree<int>::iterator {aka btree_iterator<int, Identity>}' is not derived from 'const std::fpos<_StateT>'
+   cout << (iter != c_iter) << endl;
+                    ^
+/home/cs6771/17s2.work/ass4/execute: line 111: test21: command not found
+--------------------------------
+** Test 22: const iterator ==/!= iterator
+--------------------------------
+** Test failed (run-time error/compile error). Output difference:-
+test22.cpp: In function 'void foo(btree<int>&, const btree<int>&)':
+test22.cpp:11:19: error: no match for 'operator==' (operand types are 'btree<int>::const_iterator {aka btree_iterator<int, std::add_const>}' and 'btree<int>::iterator {aka btree_iterator<int, Identity>}')
+   cout << (c_iter == iter) << endl;
+                   ^
+test22.cpp:11:19: note: candidates are:
+In file included from /usr/include/c++/4.9/iosfwd:40:0,
+                 from /usr/include/c++/4.9/ios:38,
+                 from /usr/include/c++/4.9/ostream:38,
+                 from /usr/include/c++/4.9/iostream:39,
+                 from test22.cpp:1:
+/usr/include/c++/4.9/bits/postypes.h:216:5: note: template<class _StateT> bool std::operator==(const std::fpos<_StateT>&, const std::fpos<_StateT>&)
+     operator==(const fpos<_StateT>& __lhs, const fpos<_StateT>& __rhs)
+     ^
+/usr/include/c++/4.9/bits/postypes.h:216:5: note:   template argument deduction/substitution failed:
+test22.cpp:11:22: note:   'btree<int>::const_iterator {aka btree_iterator<int, std::add_const>}' is not derived from 'const std::fpos<_StateT>'
+   cout << (c_iter == iter) << endl;
+                      ^
+In file included from /usr/include/c++/4.9/bits/stl_algobase.h:64:0,
+                 from /usr/include/c++/4.9/bits/char_traits.h:39,
+                 from /usr/include/c++/4.9/ios:40,
+** 719 lines skipped **
+                 from test22.cpp:1:
+/usr/include/c++/4.9/bits/stl_pair.h:227:5: note: template<class _T1, class _T2> constexpr bool std::operator!=(const std::pair<_T1, _T2>&, const std::pair<_T1, _T2>&)
+     operator!=(const pair<_T1, _T2>& __x, const pair<_T1, _T2>& __y)
+     ^
+/usr/include/c++/4.9/bits/stl_pair.h:227:5: note:   template argument deduction/substitution failed:
+test22.cpp:12:22: note:   'btree<int>::const_iterator {aka btree_iterator<int, std::add_const>}' is not derived from 'const std::pair<_T1, _T2>'
+   cout << (c_iter != iter) << endl;
+                      ^
+In file included from /usr/include/c++/4.9/iosfwd:40:0,
+                 from /usr/include/c++/4.9/ios:38,
+                 from /usr/include/c++/4.9/ostream:38,
+                 from /usr/include/c++/4.9/iostream:39,
+                 from test22.cpp:1:
+/usr/include/c++/4.9/bits/postypes.h:221:5: note: template<class _StateT> bool std::operator!=(const std::fpos<_StateT>&, const std::fpos<_StateT>&)
+     operator!=(const fpos<_StateT>& __lhs, const fpos<_StateT>& __rhs)
+     ^
+/usr/include/c++/4.9/bits/postypes.h:221:5: note:   template argument deduction/substitution failed:
+test22.cpp:12:22: note:   'btree<int>::const_iterator {aka btree_iterator<int, std::add_const>}' is not derived from 'const std::fpos<_StateT>'
+   cout << (c_iter != iter) << endl;
+                      ^
+--------------------------------
+** Test 23: cbegin and cend
+--------------------------------
+** Test failed (run-time error/compile error). Output difference:-
+In file included from /usr/include/i386-linux-gnu/c++/4.9/bits/c++allocator.h:33:0,
+                 from /usr/include/c++/4.9/bits/allocator.h:46,
+                 from /usr/include/c++/4.9/string:41,
+                 from /usr/include/c++/4.9/bits/locale_classes.h:40,
+                 from /usr/include/c++/4.9/bits/ios_base.h:41,
+                 from /usr/include/c++/4.9/ios:42,
+                 from /usr/include/c++/4.9/ostream:38,
+                 from /usr/include/c++/4.9/iostream:39,
+                 from test23.cpp:1:
+/usr/include/c++/4.9/ext/new_allocator.h: In instantiation of 'struct __gnu_cxx::new_allocator<const int>':
+/usr/include/c++/4.9/bits/allocator.h:92:11:   required from 'class std::allocator<const int>'
+/usr/include/c++/4.9/bits/alloc_traits.h:85:43:   required from 'struct std::allocator_traits<std::allocator<const int> >'
+/usr/include/c++/4.9/ext/alloc_traits.h:95:10:   required from 'struct __gnu_cxx::__alloc_traits<std::allocator<const int> >'
+/usr/include/c++/4.9/bits/stl_vector.h:75:28:   required from 'struct std::_Vector_base<const int, std::allocator<const int> >'
+/usr/include/c++/4.9/bits/stl_vector.h:214:11:   required from 'class std::vector<const int, std::allocator<const int> >'
+btree.h:247:20:   required from 'struct btree<const int>::Node'
+btree_iterator.h:105:18:   required from 'btree_iterator<T, C>& btree_iterator<T, Constness>::operator++() [with Base = int; Constness = std::add_const]'
+test23.cpp:13:51:   required from here
+/usr/include/c++/4.9/ext/new_allocator.h:93:7: error: 'const _Tp* __gnu_cxx::new_allocator<_Tp>::address(__gnu_cxx::new_allocator<_Tp>::const_reference) const [with _Tp = const int; __gnu_cxx::new_allocator<_Tp>::const_pointer = const int*; __gnu_cxx::new_allocator<_Tp>::const_reference = const int&]' cannot be overloaded
+       address(const_reference __x) const _GLIBCXX_NOEXCEPT
+       ^
+/usr/include/c++/4.9/ext/new_allocator.h:89:7: error: with '_Tp* __gnu_cxx::new_allocator<_Tp>::address(__gnu_cxx::new_allocator<_Tp>::reference) const [with _Tp = const int; __gnu_cxx::new_allocator<_Tp>::pointer = const int*; __gnu_cxx::new_allocator<_Tp>::reference = const int&]'
+       address(reference __x) const _GLIBCXX_NOEXCEPT
+       ^
+In file included from btree.h:21:0,
+                 from test23.cpp:4:
+btree_iterator.h: In instantiation of 'const std::shared_ptr<typename btree<Base>::Node>& btree_iterator<T, Constness>::get_node() const [with Base = int; Constness = Identity; typename btree<Base>::Node = btree<int>::Node]':
+btree.h:448:93:   required from 'btree<T>::const_iterator btree<T>::cbegin() const [with T = int; btree<T>::const_iterator = btree_iterator<int, std::add_const>]'
+test23.cpp:13:28:   required from here
+btree_iterator.h:57:92: error: returning reference to temporary [-Werror=return-local-addr]
+     const std::shared_ptr<typename btree<Base>::Node>& get_node() const { return node.lock();}
+                                                                                            ^
+cc1plus: all warnings being treated as errors
+--------------------------------
+** Test 24: crbegin and crend
+--------------------------------
+** Test failed (run-time error/compile error). Output difference:-
+In file included from btree.h:21:0,
+                 from test24.cpp:4:
+btree_iterator.h: In instantiation of 'const std::shared_ptr<typename btree<Base>::Node>& btree_iterator<T, Constness>::get_node() const [with Base = int; Constness = Identity; typename btree<Base>::Node = btree<int>::Node]':
+btree.h:454:81:   required from 'btree<T>::const_iterator btree<T>::cend() const [with T = int; btree<T>::const_iterator = btree_iterator<int, std::add_const>]'
+btree.h:459:50:   required from 'btree<T>::const_reverse_iterator btree<T>::crbegin() const [with T = int; btree<T>::const_reverse_iterator = std::reverse_iterator<btree_iterator<int, std::add_const> >]'
+test24.cpp:13:29:   required from here
+btree_iterator.h:57:92: error: returning reference to temporary [-Werror=return-local-addr]
+     const std::shared_ptr<typename btree<Base>::Node>& get_node() const { return node.lock();}
+                                                                                            ^
+cc1plus: all warnings being treated as errors
+--------------------------------
+** Test 25: move constructor
+--------------------------------
+** Test passed
+--------------------------------
+** Test 26: move assignment
+--------------------------------
+** Test passed
+--------------------------------
+** Test 27: pre- and post-decrement
+--------------------------------
+** Test passed
+--------------------------------
+** Test 28: post-increment
+--------------------------------
+** Test passed
+--------------------------------
+** Test 29 **
+--------------------------------
+--------------------------------
+!!section assess
+
+!!perftab       ** PERFORMANCE ANALYSIS **
+
+Test  1 (3)     empty btree, single insert ..  ..  ..  ..  ..  !!PASSed
+Test  2 (3)     find in btree  ..  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-3)
+Test  3 (3)     custom class   ..  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-3)
+Test  4 (3)     multiple inserts   ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test  5 (3)     const iterator find .  ..  ..  ..  ..  ..  ..  !!FAILed (-3)
+Test  6 (3)     forward/reverse traversal comparison   ..  ..  !!FAILed (-3)
+Test  7 (3)     const forward/reverse traversal comparison ..  !!FAILed (-3)
+Test  8 (3)     custom class find  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test  9 (3)     custom class const reference   ..  ..  ..  ..  !!FAILed (-3)
+Test 10 (3)     random (fixed seed) character insertion .  ..  !!FAILed (-3)
+Test 11 (3)     output operator big tree   ..  ..  ..  ..  ..  !!PASSed
+Test 12 (3)     string btree   ..  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-3)
+Test 13 (3)     repeated insertion of one value .  ..  ..  ..  !!PASSed
+Test 14 (3)     empty tree traversal   ..  ..  ..  ..  ..  ..  !!FAILed (-3)
+Test 15 (3)     copy control   ..  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-3)
+Test 16 (3)     1mil int insert .  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-3)
+Test 17 (3)     node size 1, BST   ..  ..  ..  ..  ..  ..  ..  !!FAILed (-3)
+Test 18 (3)     non-const iterator ..  ..  ..  ..  ..  ..  ..  !!FAILed (-3)
+Test 19 (3)     reverse iterator   ..  ..  ..  ..  ..  ..  ..  !!FAILed (-3)
+Test 20 (3)     output operator .  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 21 (3)     iterator ==/!= const_iterator  ..  ..  ..  ..  !!FAILed (-3)
+Test 22 (3)     const iterator ==/!= iterator  ..  ..  ..  ..  !!FAILed (-3)
+Test 23 (2)     cbegin and cend .  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-2)
+Test 24 (2)     crbegin and crend  ..  ..  ..  ..  ..  ..  ..  !!FAILed (-2)
+Test 25 (3)     move constructor   ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 26 (3)     move assignment .  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 27 (2)     pre- and post-decrement .  ..  ..  ..  ..  ..  !!PASSed
+Test 28 (2)     post-increment ..  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+
+!!perfmark      ** TOTAL PERFORMANCE MARK:    28/80
+
+!!marktab       **  MARKER'S  ASSESSMENT  **
+
+                 B-Tree Implementation .  (5)   5
+
+                 Iterator Implementation  (5)   5
+
+                 Copy Control ..  ..  ..  (5)   5
+
+                 C++ Style .  ..  ..  ..  (5)   5
+
+!!finalmark     **  FINAL  ASSIGNMENT  MARK:    48/100
+
+5094935 Feng, Yu                                8543   COMPCS
+
+
+Marked by z5019791 on Wed Nov  8 20:41:33 2017
+
+
+
+
+Marked by z5019791 on Wed Nov  8 21:12:42 2017
+
+

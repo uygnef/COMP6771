@@ -1,0 +1,335 @@
+
+!!section banner
+#######   ###    #####  #        #####   #####  #######
+#        #   #  #     # #    #  #     # #     # #
+#       # #   # #     # #    #  #     #       # #
+ #####  #  #  #  ###### #######  ######  #####   #####
+      # #   # #       #      #        #       #       #
+#     #  #   #  #     #      #  #     # #     # #     #
+ #####    ###    #####       #   #####   #####   #####
+
+5094935 Feng, Yu                                8543   COMPCS
+
+Submissions:-
+
+S 0     Tue Oct 17 22:41:50 2017        5094935 mon17a ass5 -12:-1
+
+Sat Nov 04 20:29:28 2017                ## wagner.orchestra.cse.unsw.EDU.AU ##
+!!section listing
+-rw------- z5094935/z5094935 4189 2017-10-17 22:32 BucketSort.cpp
+-rw------- z5094935/z5094935  635 2017-10-17 22:36 BucketSort.h
+dos2unix: converting file BucketSort.h to Unix format ...
+
+===============================================================================
+-rw------- 1 cs6771 cs6771 635 Nov  4 20:29 BucketSort.h
+===============================================================================
+
+     1  //
+     2  // Created by yu on 16/10/17.
+     3  //
+     4
+     5  #ifndef A5_BUCKETSORT_H
+     6  #define A5_BUCKETSORT_H
+     7  #include <vector>
+     8  #include <algorithm>
+     9  #include <cmath>
+    10  #include <thread>
+    11  #include <iostream>
+    12
+    13  class BucketSort {
+    14      // vector of numbers
+    15  public:
+    16      std::vector<unsigned int> numbersToSort;
+    17
+    18      void sort(int CoreNum);
+    19
+    20  private:
+    21      void thread_sort(size_t offset, size_t vector_len);
+    22
+    23      inline std::pair<unsigned int, int> getMax();
+    24
+    25      inline int get_total_digits(unsigned int);
+    26
+    27      inline int get_digits_in_pos(unsigned int num, int pos, const int&);
+    28
+    29      inline void merge_all(int total_thread, size_t step);
+    30
+    31  };
+    32
+    33
+    34  #endif //A5_BUCKETSORT_H
+
+dos2unix: converting file BucketSort.cpp to Unix format ...
+
+===============================================================================
+-rw------- 1 cs6771 cs6771 4189 Nov  4 20:29 BucketSort.cpp
+===============================================================================
+
+     1  //
+     2  // Created by yu on 16/10/17.
+     3  //
+     4
+     5  #include "BucketSort.h"
+     6
+     7
+     8
+     9  bool aLessB(unsigned int x, unsigned int y) {
+    10      if (x == y) return false; // if the two numbers are the same then one is not less than the other
+    11
+    12      unsigned int a = x;
+    13      unsigned int b = y;
+    14
+    15      bool flag = false;
+    16      if(a < b){
+    17          flag = true;
+    18      }
+    19      unsigned a_digits = 0, b_digits = 0;
+    20
+    21      while(a > 9){
+    22          a /= 10;
+    23          a_digits += 1;
+    24      }
+    25      while(b > 9){
+    26          b /=10;
+    27          b_digits += 1;
+    28      }
+    29
+    30      // cast to avoid overflow
+    31      auto x_l = static_cast<unsigned long long>(x);
+    32      auto y_l = static_cast<unsigned long long>(y);
+    33      if(a_digits > b_digits){
+    34          y_l *= (std::pow(10, a_digits-b_digits));
+    35      }else{
+    36          x_l *= (std::pow(10, b_digits-a_digits));
+    37      }
+    38
+    39      if(x_l == y_l){
+    40          return flag;
+    41      }
+    42      return x_l < y_l;
+    43  }
+    44
+    45  // sort element from start index to end index.
+    46  void BucketSort::thread_sort(size_t start, size_t end) {
+    47      if(numbersToSort.size() < 2){
+    48          return;
+    49      }
+    50
+    51      std::vector<std::vector<unsigned int>> radix_array;
+    52      int max_digits = getMax().second;
+    53
+    54      for(int pos=1; pos <= max_digits; ++pos){
+    55          radix_array.resize(11, std::vector<unsigned int>());
+    56          for(auto i=start; i < end; ++i ){
+    57              int num = get_digits_in_pos(numbersToSort[i], pos, max_digits) + 1;
+    58              radix_array[num].emplace_back(numbersToSort[i]);
+    59          }
+    60
+    61          auto j = 0;
+    62          for(const auto& i: radix_array){
+    63              for(const auto& k: i){
+    64                  numbersToSort[start+j] = k;
+    65                  ++j;
+    66              }
+    67          }
+    68          radix_array.clear();
+    69      }
+    70  }
+    71
+    72
+    73  std::pair<unsigned int, int> BucketSort::getMax() {
+    74      auto max_num = *std::max_element(numbersToSort.begin(), numbersToSort.end());
+    75      auto temp = max_num;
+    76      int digits = 1;
+    77      while(temp >= 10){
+    78          temp /= 10;
+    79          ++digits;
+    80      }
+    81      return std::make_pair(max_num, digits);
+    82  }
+    83
+    84
+    85  int BucketSort::get_total_digits(unsigned int num) {
+    86      int digits = 1;
+    87      while(num >= 10){
+    88          num /= 10;
+    89          ++digits;
+    90      }
+    91      return digits;
+    92  }
+    93
+    94  int BucketSort::get_digits_in_pos(unsigned int num, int pos, const int& max_pos) {
+    95      int temp = 1;
+    96      pos = pos - (max_pos - get_total_digits(num));
+    97      if(pos < 1){
+    98          return -1;
+    99      }
+   100      if(pos > 1){
+   101          temp *= std::pow(10, pos-1);
+   102      }
+   103      return (num/temp) % 10;
+   104  }
+   105
+   106  void BucketSort::merge_all(int total_thread, size_t step) {
+   107      std::vector<unsigned > res;
+   108
+   109      // init index list. store the starting index of each sorted block.
+   110      std::vector<size_t> index;
+   111      for(auto i=0; i < total_thread; ++i){
+   112          index.emplace_back( i * step );
+   113      }
+   114
+   115      unsigned smallest = 0;
+   116      for(auto i=0U   ; i < numbersToSort.size(); ++i){
+   117          int smallest_index = -1;
+   118
+   119          for(auto j=0; j < total_thread; ++j){
+   120              if(index[j] < (j + 1) * step || (j == total_thread-1 && index[j] < numbersToSort.size())){
+   121                  smallest = numbersToSort[index[j]];
+   122                  smallest_index = j;
+   123                  break;
+   124              }
+   125          }
+   126
+   127          for(auto j=0; j < total_thread; ++j){
+   128              if(index[j] < (j+1) * step || (j == total_thread-1 && index[j] < numbersToSort.size())){
+   129                  if(aLessB(numbersToSort[index[j]], smallest)){
+   130                      smallest = numbersToSort[index[j]];
+   131                      smallest_index = j;
+   132                  }
+   133              }
+   134          }
+   135          if(smallest_index != -1){
+   136              index[smallest_index] += 1;
+   137          } else{
+   138              throw("error index.\n");
+   139          }
+   140
+   141          res.emplace_back(smallest);
+   142      }
+   143      numbersToSort = std::move(res);
+   144
+   145  }
+   146
+   147  void BucketSort::sort(int CoreNum) {
+   148      std::vector<std::thread> vec_thr;
+   149
+   150      auto step = static_cast<size_t>(std::floor(numbersToSort.size() / CoreNum ));
+   151      size_t start = 0;
+   152
+   153      for(auto i = 0; i < CoreNum; ++i){
+   154          if(i == CoreNum-1){
+   155              vec_thr.emplace_back(&BucketSort::thread_sort, this, start, numbersToSort.size());
+   156          }else{
+   157              vec_thr.emplace_back(&BucketSort::thread_sort, this, start, start + step);
+   158          }
+   159          start += step;
+   160      }
+   161
+   162
+   163      for(auto& i: vec_thr){
+   164          i.join();
+   165      }
+   166
+   167      merge_all(CoreNum, step);
+   168  }
+
+Compiling with g++ -std=c++14 -Wall -Werror -O2 -pthread ...
+
+!!section tests
+** Test 1: test1.cpp - 10 seconds and 500000 numbers (a generous time limit)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 2: test1.cpp - 8 seconds and 500000 numbers (a stricter time limit)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 3: test2.cpp (1000000) - 38 seconds (2 threads)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 4: test3.cpp (900000) - 22 seconds and uniform dist
+--------------------------------
+** Test passed
+--------------------------------
+** Test 5: test4.cpp (100000 even numbers) - 2 seconds
+--------------------------------
+** Test passed
+--------------------------------
+** Test 6: test5.cpp (25) - full order check -- 1 second
+--------------------------------
+** Test passed
+--------------------------------
+** Test 7: test6.cpp (25) - full order check -- 1 second
+--------------------------------
+** Test passed
+--------------------------------
+** Test 8: test7.cpp (60000) - 4 seconds, 3 parallel sorts (one thread each)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 9: test8.cpp (Boundary Case: 1 1-digit Number, 1 Thread)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 10: test9.cpp (Boundary Case: 1 1-digit Number, 2 Threads)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 11: test10.cpp (Boundary Case: 1 4-digit Number, 2 Threads)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 12: test11.cpp (Boundary Case: 1 Bucket, 2 Threads)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 13: test12.cpp (Boundary Case: 5 Buckets with 1 number each, 2 Threads)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 14: test13.cpp (Boundary Case: 5 Buckets with 1 number each, 2 Threads)
+--------------------------------
+** Test passed
+--------------------------------
+** Test 15: test14.cpp - 5 seconds and 200000 numbers (a generous time limit)
+--------------------------------
+** Test passed
+--------------------------------
+!!section assess
+
+!!perftab       ** PERFORMANCE ANALYSIS **
+
+Test  1 (8)     test1.cpp - 10 seconds and 500000 numbers (a generous time limit) .  ..  !!PASSed
+Test  2 (8)     test1.cpp - 8 seconds and 500000 numbers (a stricter time limit) ..  ..  !!PASSed
+Test  3 (8)     test2.cpp (1000000) - 38 seconds (2 threads) ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test  4 (8)     test3.cpp (900000) - 22 seconds and uniform dist ..  ..  ..  ..  ..  ..  !!PASSed
+Test  5 (10)    test4.cpp (100000 even numbers) - 2 seconds  ..  ..  ..  ..  ..  ..  ..  !!PASSed
+Test  6 (4)     test5.cpp (25) - full order check -- 1 second    ..  ..  ..  ..  ..  ..  !!PASSed
+Test  7 (4)     test6.cpp (25) - full order check -- 1 second .  ..  ..  ..  ..  ..  ..  !!PASSed
+Test  8 (4)     test7.cpp (60000) - 4 seconds, 3 parallel sorts (one thread each) .  ..  !!PASSed
+Test  9 (3)     test8.cpp (Boundary Case: 1 1-digit Number, 1 Thread)    ..  ..  ..  ..  !!PASSed
+Test 10 (3)     test9.cpp (Boundary Case: 1 1-digit Number, 2 Threads)   ..  ..  ..  ..  !!PASSed
+Test 11 (3)     test10.cpp (Boundary Case: 1 4-digit Number, 2 Threads)  ..  ..  ..  ..  !!PASSed
+Test 12 (3)     test11.cpp (Boundary Case: 1 Bucket, 2 Threads)  ..  ..  ..  ..  ..  ..  !!PASSed
+Test 13 (3)     test12.cpp (Boundary Case: 5 Buckets with 1 number each, 2 Threads)  ..  !!PASSed
+Test 14 (3)     test13.cpp (Boundary Case: 5 Buckets with 1 number each, 2 Threads)  ..  !!PASSed
+Test 15 (8)     test14.cpp - 5 seconds and 200000 numbers (a generous time limit) .  ..  !!PASSed
+
+!!perfmark      ** TOTAL PERFORMANCE MARK:    80/80
+
+!!marktab       **  MARKER'S  ASSESSMENT  **
+
+Comments/Formatting/Structure ..  ..  ..  (10)  10
+
+C++ Feature Usage (mutexes, lock guards)  (10)  10
+
+!!finalmark     **  FINAL  ASSIGNMENT  MARK:    100/100
+
+5094935 Feng, Yu                                8543   COMPCS
+
+
+Marked by z5019791 on Sun Nov 12 17:42:08 2017
+
+
