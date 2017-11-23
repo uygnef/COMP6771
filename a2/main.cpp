@@ -12,4 +12,6 @@ int a(evec::EuclideanVector a){
 int main() {
     evec::EuclideanVector v1 = {6, 8};
     a(v1);
+    evec::EuclideanVector v2{v1};
+    a(v2);
 }

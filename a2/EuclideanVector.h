@@ -4,7 +4,6 @@
 
 #ifndef A2_EUCLIDEANVECTOR_H
 #define A2_EUCLIDEANVECTOR_H
-#pragma once
 #include <cassert>
 #include <cmath>
 #include <cstring>
@@ -19,18 +18,14 @@ namespace evec {
     public:
         EuclideanVector(): dimension{1}{
             magnitude = new double[1];
-#ifdef DEBUG
-            std::cout <<"3 allocate" << magnitude<<"\n";
-#endif
+
             magnitude[0] = 0.0;
             is_change = true;
         }
 
         EuclideanVector(double length): dimension{static_cast<unsigned>(length)},
                                         magnitude{new double[dimension]}{
-#ifdef DEBUG
-            ; std::cout <<"4 allocate" << magnitude<<"\n";
-#endif
+
             for(auto i=0U; i<dimension; ++i){
                 magnitude[i] = 0.0;
             }
@@ -40,9 +35,6 @@ namespace evec {
         EuclideanVector(unsigned length, double mag) : dimension{length},
                                                        magnitude{new double[length]} {
 
-#ifdef DEBUG
-            std::cout <<"5 allocate" << magnitude<<"\n";
-#endif
             for (auto i = 0U; i < length; ++i) {
                 magnitude[i] = mag;
             }
@@ -57,9 +49,7 @@ namespace evec {
             }
 
             magnitude = new double[dimension];
-#ifdef DEBUG
-            std::cout <<"6 allocate" << magnitude<<"\n";
-#endif
+
             unsigned j = 0U;
             for (auto i = begin; i != end; ++i) {
                 magnitude[j] = static_cast<double>(*i);
@@ -70,11 +60,8 @@ namespace evec {
         }
 
         EuclideanVector(std::initializer_list<double> values){
-            dimension = static_cast<unsigned >(values.size());
+            dimension = values.size();
             magnitude = new double[dimension];
-#ifdef DEBUG
-            std::cout <<"7 allocate" << magnitude<<"\n";
-#endif
             unsigned i = 0U;
             for(auto& value: values){
                 magnitude[i] = value;

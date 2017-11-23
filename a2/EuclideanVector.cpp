@@ -11,13 +11,10 @@ namespace evec {
         magnitude = new double[dimension];
         is_change = a.is_change;
         normal = a.normal;
-#ifdef DEBUG
-        std::cout <<"1 allocate" << magnitude<<"\n";
-#endif
+
         for (auto i = 0U; i < dimension; ++i) {
             magnitude[i] = a.magnitude[i];
         }
-        std::cout << "call copy constructor.";
     }
 
     EuclideanVector::EuclideanVector(EuclideanVector &&a) {
@@ -28,17 +25,12 @@ namespace evec {
 
             a.dimension = 0;
             a.magnitude = nullptr;
-          //  delete[] a.magnitude; std::cout << "9 free "<<a.magnitude<<"\n";
     }
 
     EuclideanVector::~EuclideanVector() {
        // this->dimension = 0;
         if(magnitude != nullptr){
             delete[] this->magnitude;
-#ifdef DEBUG
-            std::cout << * magnitude;
-            std::cout <<"        1 free" << magnitude<<"\n";
-#endif
         }
     }
 
@@ -192,9 +184,7 @@ namespace evec {
         return ret;
     }
 
-//template<typename T>
     EuclideanVector operator/(const EuclideanVector &lhs, double scale) {
-       // assert(scale != 0);
         EuclideanVector ret(lhs.getNumDimensions());
         for (auto i = 0U; i < lhs.getNumDimensions(); ++i) {
             ret.magnitude[i] = lhs.get(i) / scale;
